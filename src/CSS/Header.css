@@ -1,0 +1,398 @@
+/* ------------------------------------------------First Header------------------------------------ */
+@keyframes slideBackground {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+.text
+{
+    font-size: 80px;
+    font-family: fantasy;
+    letter-spacing: 4px;
+    background-image: url(../Images/textwall.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    width: 290px;
+    color: transparent; 
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: slideBackground 8s linear infinite;
+    
+}
+
+
+.img-borrow
+{
+    height: 80PX;
+    width: 80px;
+}
+
+.fa-instagram {
+  background: #7638fa; /* Fallback color */
+  background: linear-gradient(
+    45deg,
+    #ffd600,
+    #ff7a00,
+    #ff0069,
+    #d300c5,
+    #7638fa
+  );
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.fa-whatsapp{
+    color: green;
+}
+.fa-phone{
+    font-size: 14px;
+    color: blue;
+}
+
+.number
+{
+    font-size: 13px;
+    align-items: center;
+}
+
+
+/* ------------------------------------------------First Header------------------------------------ */
+
+
+.Navlogo
+{
+    height: 40px;
+    width: 100px;
+    /* margin-top: -5px; */
+    margin-left: 50%;
+    transform: scale(1.70);
+}
+
+nav{
+    /* padding: 5px; */
+    display:flex;
+    justify-content: end;
+    margin-right: 5%;
+    align-items: center;
+    z-index: 3;
+}
+
+ul{
+    
+    list-style-type:none;
+    text-decoration: none;
+    display:flex;
+    align-items: center;
+    /* margin-top: -1px; */
+    
+}
+
+.header-links
+{
+    margin: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: black;
+    align-items: center;
+    padding-top: 10px;
+    text-decoration: none;
+    
+}
+
+.nav-list
+{
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+.fa-circle-user
+{
+    color: rgb(0, 115, 161);
+    font-size: 20px;
+}
+
+/* --------------------------------------HowItWorks---------------------------------------- */
+/* --- Custom Tooltip Styling (Tight Fit) --- */
+
+/* 1. Make sure the link acts as the anchor point */
+.custom-tooltip-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 2. The text box of the tooltip */
+.custom-tooltip-link::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  /* calc() perfectly rests the box right on top of the little arrow */
+  bottom: calc(100% + 12px); 
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #212529; 
+  color: white;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none; 
+  
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease; 
+}
+
+/* 3. The little triangle arrow pointing down */
+.custom-tooltip-link::before {
+  content: "";
+  position: absolute;
+  /* 100% places the tip of the arrow exactly on the top edge of the gears */
+  bottom: 100%; 
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #212529 transparent transparent transparent;
+  
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+/* 4. Show the tooltip when hovering over the link */
+.custom-tooltip-link:hover::after,
+.custom-tooltip-link:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+/* ------------------------------------------------------------------------------------------------------ */
+/* ---------------------------------------------Admin ToolTip------------------------------------------- */
+/* --- Custom Tooltip Styling (Tight Fit) --- */
+
+/* 1. Make sure the link acts as the anchor point */
+.custom-tooltip-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 2. The text box of the tooltip */
+.custom-tooltip-link::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  /* calc() perfectly rests the box right on top of the little arrow */
+  bottom: calc(100% + 12px); 
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #212529; 
+  color: white;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none; 
+  
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease; 
+}
+
+/* 3. The little triangle arrow pointing down */
+.custom-tooltip-link::before {
+  content: "";
+  position: absolute;
+  /* 100% places the tip of the arrow exactly on the top edge of the gears */
+  bottom: 100%; 
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #212529 transparent transparent transparent;
+  
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+/* 4. Show the tooltip when hovering over the link */
+.custom-tooltip-link:hover::after,
+.custom-tooltip-link:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ----------------------------------------------Admin ToolTip-------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------ */
+
+/* @keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fa-gear
+{
+    color: #A8B1B9;
+    animation: spin 2s linear infinite;
+} */
+
+/* Container to keep them aligned */
+.meshing-gears {
+  display: flex;
+  font-size: 4rem; /* You can change this! The math below will auto-scale. */
+  color: #A8B1B9;
+}
+
+/* 1. First Gear: Spins normally forward */
+.gear-one {
+    color: #A8B1B9;
+  animation: spin 4s linear infinite;
+}
+
+/* 2. Second Gear: Overlapped and spinning backward */
+.gear-two {
+  /* This negative margin pulls the second gear exactly into the first one */
+  margin-left: -0.36em; 
+  animation: spin-reverse 4s linear infinite;
+}
+
+/* Forward Animation */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Reverse Animation with Offset */
+@keyframes spin-reverse {
+  /* We start at 22.5deg so the teeth mesh, and subtract 360deg for a full reverse loop */
+  from { transform: rotate(22.5deg); }
+  to { transform: rotate(-337.5deg); }
+}
+/* --------------------------------------HowItWorks-------------------------------------------- */
+
+.fa-heart
+{
+    font-size: 15px;
+    background-color: #FF13F0;
+    align-items: center;
+    background-clip: text;
+    -webkit-text-fill-color: transparent; 
+}
+
+.login-img
+{
+    width: 70px;
+    height: 70px;
+}
+
+.hero-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffffff;
+  z-index: 2;
+  width: 90%;
+  /* ⬇️ Add a transition for opacity ⬇️ */
+  transition: opacity 0.5s ease-in-out; 
+}
+
+/* ⬇️ Class to apply when hidden ⬇️ */
+.hero-content-hidden {
+  opacity: 0;
+  pointer-events: none; /* Prevents clicking links when hidden */
+}
+
+
+
+/* --------------------------------------------------------------------------------------------- */
+/* ── MOBILE RESPONSIVE ── */
+@media (max-width: 768px) {
+
+  /* Hide desktop nav links */
+  .nav-list {
+    display: none !important;
+  }
+
+  /* Show hamburger button */
+  .hamburger-btn {
+    display: block !important;
+  }
+
+  /* Top bar — everything in one row */
+  .topbar-inner {
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    padding: 5px 10px !important;
+  }
+
+  /* Shrink logo video */
+  .topbar-logo-video {
+    width: 120px !important;
+    height: 40px !important;
+  }
+
+  /* Icons all in one row */
+  .topbar-nav-items {
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+  }
+
+  /* Hide text, show only icons */
+  .number {
+    display: none !important;
+  }
+
+  .insta-id {
+    display: none !important;
+  }
+
+  /* Smaller login image */
+  .login-img {
+    width: 35px !important;
+    height: 35px !important;
+  }
+
+  /* Smaller admin icon */
+  .fa-circle-user {
+    font-size: 20px !important;
+    margin: 0 !important;
+  }
+
+  /* Hero height smaller */
+  .hero-container {
+    height: 50vh !important;
+  }
+
+  .hero-title {
+    font-size: 1.5rem !important;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem !important;
+  }
+
+  /* Nav logo smaller */
+  .Navlogo {
+    height: 40px !important;
+    width: auto !important;
+    margin-left: 10px !important;
+    transform: scale(1) !important;
+  }
+}
+/* -------------------------------------------------------------------------------------------------- */

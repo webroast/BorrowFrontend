@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "title": "Tools & DIY",
+    "description": "Drills, wrenches, ladders, and home repair gear.",
+    "icon": "🔧",
+    "count": 124
+  },
+  {
+    "id": 2,
+    "title": "Adventure & Outdoors",
+    "description": "Tents, sleeping bags, kayaks, and camping stoves.",
+    "icon": "⛺",
+    "count": 85
+  },
+  {
+    "id": 3,
+    "title": "Electronics & Tech",
+    "description": "DSLR cameras, tripods, projectors, and lenses.",
+    "icon": "📷",
+    "count": 62
+  },
+  {
+    "id": 4,
+    "title": "Home & Events",
+    "description": "Party decorations, sewing machines, and kitchen utilities.",
+    "icon": "🎉",
+    "count": 93
+  },
+  {
+    "id": 5,
+    "title": "Books & Study",
+    "description": "Academic textbooks, reference guides, and novels.",
+    "icon": "📚",
+    "count": 150
+  },
+  {
+    "id": 6,
+    "title": "Sports & Fitness",
+    "description": "Cricket kits, footballs, dumbbells, and badminton rackets.",
+    "icon": "🏏",
+    "count": 78
+  },
+  {
+    "id": 7,
+    "title": "Kids & Toys",
+    "description": "Board games, educational playsets, and baby gear.",
+    "icon": "🧸",
+    "count": 45
+  },
+  {
+    "id": 8,
+    "title": "Clothes & Festive Wear",
+    "description": "Traditional suits, designer blazers, and luxury wedding attire.",
+    "icon": "👔",
+    "count": 112
+  }
+]

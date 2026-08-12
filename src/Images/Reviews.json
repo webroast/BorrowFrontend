@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "name": "Aman Sharma",
+    "role": "Lender (Power Tools)",
+    "stars": "⭐⭐⭐⭐⭐",
+    "text": "Extremely smooth platform. I listed my heavy-duty drill kit and it got rented within 2 hours by a neighbor. Payments are secured perfectly."
+  },
+  {
+    "id": 2,
+    "name": "Priya Patel",
+    "role": "Borrower (Camping Gear)",
+    "stars": "⭐⭐⭐⭐⭐",
+    "text": "Saved me thousands of rupees! Borrowed a high-end trekking tent for a weekend trip instead of buying one. Highly recommended."
+  },
+  {
+    "id": 3,
+    "name": "Rohan Das",
+    "role": "Lender (DSLR Camera)",
+    "stars": "⭐⭐⭐⭐⭐",
+    "text": "My expensive camera gear was just sitting in the cupboard gathering dust. Listing it here turned it into a steady side income stream. The verification process makes it worry-free."
+  },
+  {
+    "id": 4,
+    "name": "Ananya Iyer",
+    "role": "Borrower (Traditional Wear)",
+    "stars": "⭐⭐⭐⭐⭐",
+    "text": "Needed a premium lehenga for my friend's wedding but didn't want to spend a fortune on something I'd wear once. Found a gorgeous designer piece right in my locality!"
+  },
+  {
+    "id": 5,
+    "name": "Vikram Malhotra",
+    "role": "Lender (Fitness Equipment)",
+    "stars": "⭐⭐⭐⭐⭐",
+    "text": "Renting out my adjustable dumbbells and bench setup has been a breeze. The chat feature lets me coordinate safe, fast handoffs with community members easily."
+  },
+  {
+    "id": 6,
+    "name": "Sneha Reddy",
+    "role": "Borrower (Projector & Screen)",
+    "stars": "⭐⭐⭐⭐⭐",
+    "text": "Hosted an epic backyard movie night for my family! Borrowed a 4K projector and a massive screen for just a fraction of retail price. Returning it was incredibly hassle-free."
+  }
+]

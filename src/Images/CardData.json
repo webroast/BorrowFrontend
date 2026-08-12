@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "name": "Camera",
+    "image": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=500"
+  },
+  {
+    "id": 2,
+    "name": "Party",
+    "image": "https://images.unsplash.com/photo-1698602919581-56dbf3e67bd0?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  },
+  {
+    "id": 3,
+    "name": "Furniture",
+    "image": "https://images.unsplash.com/photo-1692451438819-24d1ac92c3eb?q=80&w=1146&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  },
+  {
+    "id": 4,
+    "name": "Eventwear",
+    "image": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=500"
+  },
+  {
+    "id": 5,
+    "name": "Tools",
+    "image": "https://images.unsplash.com/photo-1546827209-a218e99fdbe9?q=80&w=1165&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  },
+  {
+    "id": 6,
+    "name": "Camping",
+    "image": "https://images.unsplash.com/photo-1508873696983-2dfd5898f08b?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  },
+  {
+    "id": 7,
+    "name": "Gaming",
+    "image": "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  },
+  {
+    "id": 8,
+    "name": "More",
+    "image": "https://images.unsplash.com/photo-1639763832833-242273ded085?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  }
+]

@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "itemName": "Sony Alpha 7 IV Mirrorless Camera",
+    "perDayPrice": 2500,
+    "starRating": 4.9,
+    "isWishlisted": false,
+    "image": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=500"
+  },
+  {
+    "id": 2,
+    "itemName": "JBL PartyBox 310 Bluetooth Speaker",
+    "perDayPrice": 1800,
+    "starRating": 4.7,
+    "isWishlisted": true,
+    "image": "https://images.unsplash.com/photo-1687772424499-21363b114191?q=80&w=1169&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  },
+  {
+    "id": 3,
+    "itemName": "Quechua 4-Person Camping Tent",
+    "perDayPrice": 800,
+    "starRating": 4.5,
+    "isWishlisted": false,
+    "image": "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?q=80&w=500"
+  },
+  {
+    "id": 4,
+    "itemName": "PlayStation 5 Console (DualSense Bundle)",
+    "perDayPrice": 1500,
+    "starRating": 4.8,
+    "isWishlisted": false,
+    "image": "https://images.unsplash.com/photo-1731405858377-6de0070d8d65?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+  },
+  {
+    "id": 5,
+    "itemName": "Bosch Professional Cordless Drill Set",
+    "perDayPrice": 600,
+    "starRating": 4.6,
+    "isWishlisted": true,
+    "image": "https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=500"
+  },
+  {
+    "id": 6,
+    "itemName": "Designer Premium Wedding Tuxedo",
+    "perDayPrice": 3200,
+    "starRating": 4.9,
+    "isWishlisted": false,
+    "image": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=500"
+  }
+]

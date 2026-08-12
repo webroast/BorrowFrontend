@@ -1,0 +1,56 @@
+/* Footer.css */
+.footer-bg {
+    background-color: #f4f6f7;
+    color: #4a5568;
+}
+.brand-text {
+    color: #006d77;
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+.footer-link {
+    color: #718096;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s ease-in-out;
+}
+.footer-link:hover {
+    color: #006d77;
+}
+.footer-heading {
+    color: #1a202c;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+.bottom-text {
+    color: #a0aec0;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+.chat-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #006d77;
+    color: white;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s;
+    z-index: 1000;
+    text-decoration: none;
+}
+.chat-btn:hover {
+    transform: scale(1.05);
+    color: white;
+}
+
+
+
+
