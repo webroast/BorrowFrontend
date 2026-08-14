@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { ShoppingCart } from 'lucide-react'
 import '../CSS/Header.css'
 import logovideo from '../Images/Scene.mp4'
 import loginimg from '../Images/login.png'
 import HFlogo from '../Images/HeaderFooterMainLogo.png'
 
-const Header = ({ videoSrc, imageSrc, heroTitle, heroSubtitle, heroBtnText, heroBtnLink, hideHero, isLoggedIn, onLogout }) => {
+const Header = ({ 
+  videoSrc, 
+  imageSrc, 
+  heroTitle, 
+  heroSubtitle, 
+  heroBtnText, 
+  heroBtnLink, 
+  hideHero, 
+  isLoggedIn, 
+  onLogout,
+  cartCount = 0 // Optional prop to pass dynamic cart item count
+}) => {
   const [isScrolled, setIsScrolled] = useState(window.scrollY > 90);
   const navigate = useNavigate();
 
@@ -56,7 +68,8 @@ const Header = ({ videoSrc, imageSrc, heroTitle, heroSubtitle, heroBtnText, hero
             padding: 15px;
           }
           .transparent-nav .header-links { color: #fff !important; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
-          .transparent-nav .header-links i { color: #fff !important; }
+          .transparent-nav .header-links i, 
+          .transparent-nav .header-links svg { color: #fff !important; }
           .solid-sticky-nav {
             position: fixed; top: 0; left: 0;
             width: 100%; z-index: 1050;
@@ -65,6 +78,86 @@ const Header = ({ videoSrc, imageSrc, heroTitle, heroSubtitle, heroBtnText, hero
             animation: slideDown 0.3s ease-in-out;
           }
           @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+
+          /* ── CART ICON & BADGE ── */
+          .cart-nav-link {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: transform 0.2s ease;
+          }
+          .cart-nav-link:hover {
+            transform: scale(1.08);
+          }
+          .cart-badge {
+            position: absolute;
+            top: -7px;
+            right: -10px;
+            background-color: #0d6efd;
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            border: 2px solid #ffffff;
+            line-height: 1;
+            box-shadow: 0 2px 6px rgba(13, 110, 253, 0.4);
+            pointer-events: none;
+          }
+
+          /* ── TOOLTIP STYLING ── */
+          .cart-tooltip {
+            position: relative;
+          }
+          .cart-tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            background-color: rgba(15, 23, 42, 0.9);
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1100;
+          }
+          /* Tooltip small arrow */
+          .cart-tooltip::before {
+            content: '';
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            border-width: 0 5px 6px 5px;
+            border-style: solid;
+            border-color: transparent transparent rgba(15, 23, 42, 0.9) transparent;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            z-index: 1100;
+          }
+          .cart-tooltip:hover::after,
+          .cart-tooltip:hover::before {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+          }
 
           /* ── LOGOUT CAPSULE BUTTON ── */
           .logout-pill-btn {
@@ -158,12 +251,6 @@ const Header = ({ videoSrc, imageSrc, heroTitle, heroSubtitle, heroBtnText, hero
                 </Link>
               )}
             </li>
-
-            {/* <li className="d-flex align-items-center">
-              <Link className='custom-tooltip-link' data-tooltip="Admin" to="/admin">
-                <i className="fa-solid me-1 ms-4 fa-circle-user"></i>
-              </Link>
-            </li> */}
           </ul>
 
         </div>
@@ -191,10 +278,29 @@ const Header = ({ videoSrc, imageSrc, heroTitle, heroSubtitle, heroBtnText, hero
             </li>
             <li><Link className='header-links' to="/contactus">Contact Us</Link></li>
             <li><Link className='header-links' to="/reviews">Reviews</Link></li>
+            
+            {/* WishList Link */}
             <li>
-              <Link className='header-links me-5' to="/wishlist">
+              <Link className='header-links' to="/wishlist">
                 <span>WishList </span>
                 <i className="fa-solid fa-heart" style={{ color: '#e11d48' }}></i>
+              </Link>
+            </li>
+
+            {/* Cart Icon with Dynamic Badge & Tooltip */}
+            <li>
+              <Link 
+                className='header-links cart-nav-link cart-tooltip me-4' 
+                to="/cart" 
+                data-tooltip="View Cart"
+                aria-label="Shopping Cart"
+              >
+                <ShoppingCart size={22} strokeWidth={2.2} />
+                {cartCount > 0 && (
+                  <span className="cart-badge">
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
+                )}
               </Link>
             </li>
           </ul>

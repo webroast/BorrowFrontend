@@ -1,20 +1,42 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../CSS/Admin.css';
 import axios from 'axios';
 
+const CATEGORIES_LIST = [
+  { id: 'digital', name: 'Digital', icon: 'fa-laptop' },
+  { id: 'party', name: 'Party', icon: 'fa-champagne-glasses' },
+  { id: 'furniture', name: 'Furniture', icon: 'fa-couch' },
+  { id: 'eventwear', name: 'Eventwear', icon: 'fa-shirt' },
+  { id: 'tools', name: 'Tools', icon: 'fa-screwdriver-wrench' },
+  { id: 'camping', name: 'Camping', icon: 'fa-campground' },
+  { id: 'gaming', name: 'Gaming', icon: 'fa-gamepad' },
+  { id: 'more', name: 'More', icon: 'fa-layer-group' }
+];
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Active Tab State (Persisted in LocalStorage)
-  const [activeTab, setActiveTab] = useState(() => {
-    return localStorage.getItem('adminActiveTab') || 'dashboard';
-  });
+  // Read active tab and selected category directly from URL
+  const activeTab = searchParams.get('tab') || localStorage.getItem('adminActiveTab') || 'dashboard';
+  const selectedCategory = searchParams.get('category');
 
+  // Change tab and sync with browser history
   const handleTabChange = (tabName) => {
-    setActiveTab(tabName);
     localStorage.setItem('adminActiveTab', tabName);
+    setSearchParams({ tab: tabName });
+  };
+
+  // Select category and push history state (so browser back/swiping works)
+  const handleSelectCategory = (categoryName) => {
+    setSearchParams({ tab: 'view-products', category: categoryName });
+  };
+
+  // Back action: uses browser history
+  const handleBackToCategories = () => {
+    navigate(-1);
   };
 
   // Backend Data States
@@ -30,7 +52,7 @@ const AdminDashboard = () => {
     category: '',
     quantity: 0,
     rating: 0,
-    img:''
+    img: ''
   });
 
   // Modal State for Editing Product
@@ -43,8 +65,11 @@ const AdminDashboard = () => {
     category: '',
     quantity: 0,
     rating: 0,
-    img:''
+    img: ''
   });
+
+  // Modal State for Viewing Product Details
+  const [viewProduct, setViewProduct] = useState(null);
 
   // Fetch all products from backend API
   const fetchProducts = useCallback(() => {
@@ -70,7 +95,6 @@ const AdminDashboard = () => {
       });
   }, []);
 
-  // Fetch products and users on initial render
   useEffect(() => {
     fetchProducts();
     fetchUsers();
@@ -98,10 +122,10 @@ const AdminDashboard = () => {
         category: '',
         quantity: 0,
         rating: 0,
-        img:''
+        img: ''
       });
       fetchProducts();
-      handleTabChange('view-medicines'); // Navigates to View All Products tab
+      handleTabChange('view-products');
     } catch (err) {
       console.error("Adding error:", err);
       alert("Failed to Add product.");
@@ -109,7 +133,8 @@ const AdminDashboard = () => {
   };
 
   // Open Edit Modal & Populate Selected Product Data
-  const handleEditClick = (product) => {
+  const handleEditClick = (product, e) => {
+    if (e) e.stopPropagation();
     setEditProduct({
       id: product.id,
       productName: product.productName || '',
@@ -120,6 +145,7 @@ const AdminDashboard = () => {
       rating: product.rating || 0,
       img: product.img || ''
     });
+    setViewProduct(null);
     setShowModal(true);
   };
 
@@ -138,11 +164,13 @@ const AdminDashboard = () => {
   };
 
   // Delete Product
-  const handleDeleteClick = async (id) => {
+  const handleDeleteClick = async (id, e) => {
+    if (e) e.stopPropagation();
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
         await axios.delete(`http://localhost:8080/products/deletebyid/${id}`);
         alert("Product deleted successfully!");
+        setViewProduct(null);
         fetchProducts();
       } catch (err) {
         console.error("Delete error:", err);
@@ -151,13 +179,41 @@ const AdminDashboard = () => {
     }
   };
 
-  // Toggle User Active Status
-  const toggleStatus = (id) => {
+  // ==========================================
+  // TOGGLE USER STATUS & SYNC WITH DATABASE
+  // ==========================================
+  const toggleStatus = async (user) => {
+    const newStatus = !user.active;
+
+    // 1. Optimistic Update (Update UI immediately)
     setUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user.id === id ? { ...user, active: !user.active } : user
+      prevUsers.map((u) =>
+        u.id === user.id ? { ...u, active: newStatus } : u
       )
     );
+
+    // 2. Persist to Backend API
+    try {
+      // Updates the user active status on the backend
+      await axios.patch(
+        `http://localhost:8080/users/updatestatus/${user.id}`,
+        null,
+        {
+          params: { active: newStatus }
+        }
+      );
+      console.log(`User ${user.id} status updated to:`, newStatus);
+    } catch (error) {
+      console.error("Error updating user status in database:", error);
+      alert("Failed to update status in database. Reverting changes.");
+      
+      // Rollback UI if backend call fails
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u.id === user.id ? { ...u, active: !newStatus } : u
+        )
+      );
+    }
   };
 
   // Logout Handler
@@ -167,6 +223,20 @@ const AdminDashboard = () => {
       navigate('/login');
     }
   };
+
+  // Filter products by selected category
+  const filteredProducts = products.filter((p) => {
+    if (!selectedCategory) return false;
+    const cat = (p.category || '').trim().toLowerCase();
+    const sel = selectedCategory.trim().toLowerCase();
+
+    if (sel === 'more') {
+      const standardCategories = ['digital', 'party', 'furniture', 'eventwear', 'tools', 'camping', 'gaming'];
+      return !standardCategories.some((sc) => cat.includes(sc));
+    }
+
+    return cat.includes(sel);
+  });
 
   // Render Section
   const renderTabContent = () => {
@@ -208,67 +278,264 @@ const AdminDashboard = () => {
           </div>
         );
 
-      case 'view-medicines':
+      case 'view-products':
         return (
           <div className="content-body">
-            <h4 className="page-title text-center mb-4">
-              All Products <i className="fa-solid fa-box text-primary"></i>
-            </h4>
-            {products.length === 0 ? (
-              <div className="empty-state text-center py-5 bg-white rounded-3 shadow-sm">
-                <p className="text-muted m-0">No products available in database.</p>
+            {!selectedCategory ? (
+              <div>
+                <h4 className="page-title text-center mb-2">
+                  Select Product Category <i className="fa-solid fa-layer-group text-primary"></i>
+                </h4>
+                <p className="text-center text-muted small mb-4">
+                  Choose a category below to view and manage its products.
+                </p>
+
+                <div className="row g-4">
+                  {CATEGORIES_LIST.map((cat) => {
+                    const count = products.filter((p) => {
+                      const c = (p.category || '').toLowerCase();
+                      if (cat.id === 'more') {
+                        const standard = ['digital', 'party', 'furniture', 'eventwear', 'tools', 'camping', 'gaming'];
+                        return !standard.some((st) => c.includes(st));
+                      }
+                      return c.includes(cat.id);
+                    }).length;
+
+                    return (
+                      <div className="col-12 col-sm-6 col-lg-3" key={cat.id}>
+                        <div
+                          className="card border-0 shadow-sm rounded-4 p-4 text-center h-100 category-selection-card"
+                          style={{
+                            cursor: 'pointer',
+                            transition: 'all 0.25s ease',
+                            background: '#ffffff'
+                          }}
+                          onClick={() => handleSelectCategory(cat.name)}
+                        >
+                          <div className="d-flex align-items-center justify-content-center mb-3">
+                            <div
+                              className="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center"
+                              style={{ width: '60px', height: '60px', fontSize: '1.4rem' }}
+                            >
+                              <i className={`fa-solid ${cat.icon}`}></i>
+                            </div>
+                          </div>
+                          
+                          <span className={`badge mb-2 mx-auto px-3 py-1 ${count > 0 ? 'bg-primary-subtle text-primary' : 'bg-light text-muted border'}`}>
+                            {count} {count === 1 ? 'Item' : 'Items'}
+                          </span>
+
+                          <h5 className="fw-bold text-dark mb-0">{cat.name}</h5>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             ) : (
-              <div className="row g-4">
-                {products.map((product) => (
-                  <div className="col-12 col-md-6 col-lg-4" key={product.id}>
-                    <div className="med-card">
-                      <div className="med-img-wrapper">
-                        <img
-                          src={product.img || 'https://via.placeholder.com/200?text=No+Image'}
-                          alt={product.productsName}
-                          className="med-img"
-                        />
+              <div>
+                <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2 bg-white p-3 rounded-3 shadow-sm border">
+                  <div className="d-flex align-items-center gap-3">
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm px-3 rounded-pill d-inline-flex align-items-center gap-2"
+                      onClick={handleBackToCategories}
+                    >
+                      <i className="fa-solid fa-arrow-left"></i>
+                      <span>Back to Categories</span>
+                    </button>
+                    <div>
+                      <h5 className="fw-bold mb-0 text-dark">
+                        {selectedCategory}
+                      </h5>
+                      <small className="text-muted">Showing all items in this category</small>
+                    </div>
+                  </div>
+                  <span className="badge bg-light text-dark border px-3 py-2">
+                    Total: {filteredProducts.length} items
+                  </span>
+                </div>
+
+                {filteredProducts.length === 0 ? (
+                  <div className="empty-state text-center py-5 bg-white rounded-3 shadow-sm">
+                    <i className="fa-solid fa-box-open text-muted fs-1 mb-3"></i>
+                    <h6 className="fw-bold text-dark">No Products Found</h6>
+                    <p className="text-muted small mb-3">There are currently no products listed under "{selectedCategory}".</p>
+                    <button
+                      type="button"
+                      className="btn btn-outline-primary btn-sm px-4 rounded-pill"
+                      onClick={handleBackToCategories}
+                    >
+                      Choose Another Category
+                    </button>
+                  </div>
+                ) : (
+                  <div className="row g-4">
+                    {filteredProducts.map((product) => (
+                      <div className="col-12 col-md-6 col-lg-4" key={product.id}>
+                        <div 
+                          className="med-card h-100 position-relative shadow-sm"
+                          style={{ cursor: 'pointer', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+                          onClick={() => setViewProduct(product)}
+                        >
+                          <div className="med-img-wrapper">
+                            <img
+                              src={product.img || 'https://via.placeholder.com/200?text=No+Image'}
+                              alt={product.productName}
+                              className="med-img"
+                            />
+                          </div>
+
+                          <div className="p-3 text-center d-flex flex-column justify-content-between">
+                            <div>
+                              <h6 className="fw-bold mb-2 text-dark text-truncate">{product.productName}</h6>
+                              <span className="badge bg-secondary-subtle text-secondary mb-2">{product.category}</span>
+                              <p className="med-info mb-1 text-muted small text-truncate">
+                                {product.productDescription}
+                              </p>
+                              <p className="med-info mb-1 small">
+                                <strong>Quantity:</strong> {product.quantity} &nbsp;|&nbsp; <strong>Rating:</strong> ⭐ {product.rating}
+                              </p>
+                              <h5 className="price-tag fw-bold mt-2 mb-2 text-primary">₹{product.price} <small className="text-muted fs-6 fw-normal">/ day</small></h5>
+                            </div>
+
+                            <div className="d-flex justify-content-between align-items-center w-100 mt-2 pt-2 border-top">
+                              <span className="text-primary small fw-semibold">
+                                <i className="fa-regular fa-eye me-1"></i> View Full Details
+                              </span>
+                              <div className="d-flex gap-2">
+                                <button 
+                                  type="button"
+                                  className="btn btn-outline-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0"
+                                  style={{ width: '32px', height: '32px' }}
+                                  onClick={(e) => handleEditClick(product, e)}
+                                  title="Edit Product"
+                                >
+                                  <i className="fa-solid fa-pen"></i>
+                                </button>
+                                <button 
+                                  type="button"
+                                  className="btn btn-outline-danger btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0" 
+                                  style={{ width: '32px', height: '32px' }}
+                                  onClick={(e) => handleDeleteClick(product.id, e)}
+                                  title="Delete Product"
+                                >
+                                  <i className="fa-solid fa-trash"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* PRODUCT FULL DETAIL PREVIEW MODAL */}
+            {viewProduct && (
+              <div 
+                className="custom-modal-backdrop" 
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: 'rgba(0, 0, 0, 0.65)',
+                  zIndex: 1050,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '20px'
+                }}
+                onClick={() => setViewProduct(null)}
+              >
+                <div 
+                  className="bg-white rounded-4 shadow-lg overflow-hidden border-0"
+                  style={{
+                    maxWidth: '750px',
+                    width: '100%',
+                    maxHeight: '90vh',
+                    overflowY: 'auto',
+                    animation: 'fadeIn 0.2s ease-in-out'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="p-3 px-4 border-bottom d-flex justify-content-between align-items-center bg-light">
+                    <span className="badge bg-primary px-3 py-2 rounded-pill text-uppercase">
+                      {viewProduct.category}
+                    </span>
+                    <button 
+                      type="button" 
+                      className="btn-close" 
+                      onClick={() => setViewProduct(null)}
+                    ></button>
+                  </div>
+
+                  <div className="p-4">
+                    <div className="row g-4 align-items-center">
+                      <div className="col-12 col-md-5 text-center">
+                        <div className="rounded-3 overflow-hidden border shadow-sm p-2 bg-light">
+                          <img 
+                            src={viewProduct.img || 'https://via.placeholder.com/350?text=No+Image'} 
+                            alt={viewProduct.productName}
+                            className="img-fluid rounded-2"
+                            style={{ maxHeight: '280px', width: '100%', objectFit: 'cover' }}
+                          />
+                        </div>
                       </div>
 
-                      <div className="p-3 text-center">
-                        <h6 className="fw-bold mb-2 text-dark">{product.productName}</h6>
-                        <p className="med-info mb-1">
-                          <strong>Category:</strong> {product.category}
-                        </p>
-                        <p className="med-info mb-1">
-                          <strong>Description:</strong> {product.productDescription}
-                        </p>
-                        <p className="med-info mb-1">
-                          <strong>Quantity:</strong> {product.quantity}
-                        </p>
-                        <p className="med-info mb-1">
-                          <strong>Rating:</strong> ⭐ {product.rating} / 5
-                        </p>
-                        <h5 className="price-tag fw-bold mt-2 mb-3">₹{product.price}</h5>
-
-                        <div className="d-flex justify-content-between align-items-center w-100 mt-3">
-                          <button 
-                            type="button"
-                            className="btn btn-outline-primary btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0"
-                            style={{ width: '32px', height: '32px' }}
-                            onClick={() => handleEditClick(product)}
-                          >
-                            <i className="fa-solid fa-pen"></i>
-                          </button>
-                          <button 
-                            type="button"
-                            className="btn btn-outline-danger btn-sm rounded-circle d-inline-flex align-items-center justify-content-center p-0" 
-                            onClick={() => handleDeleteClick(product.id)}
-                            style={{ width: '32px', height: '32px' }}
-                          >
-                            <i className="fa-solid fa-trash"></i>
-                          </button>
+                      <div className="col-12 col-md-7">
+                        <h4 className="fw-bold text-dark mb-2">{viewProduct.productName}</h4>
+                        <div className="d-flex align-items-center gap-3 mb-3">
+                          <span className="badge bg-warning text-dark px-2 py-1">
+                            ⭐ {viewProduct.rating} / 5.0
+                          </span>
+                          <span className={`badge ${viewProduct.quantity > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}`}>
+                            {viewProduct.quantity > 0 ? `${viewProduct.quantity} Available in Stock` : 'Out of Stock'}
+                          </span>
                         </div>
+
+                        <h3 className="fw-bold text-primary mb-3">
+                          ₹{viewProduct.price} <span className="text-muted fs-6 fw-normal">/ day rental</span>
+                        </h3>
+
+                        <h6 className="fw-bold text-secondary text-uppercase small mb-1">Description</h6>
+                        <p className="text-muted" style={{ lineHeight: '1.6', fontSize: '0.95rem' }}>
+                          {viewProduct.productDescription}
+                        </p>
                       </div>
                     </div>
                   </div>
-                ))}
+
+                  <div className="p-3 px-4 border-top bg-light d-flex justify-content-between align-items-center">
+                    <button 
+                      type="button" 
+                      className="btn btn-outline-secondary px-4 rounded-pill"
+                      onClick={() => setViewProduct(null)}
+                    >
+                      Close
+                    </button>
+                    <div className="d-flex gap-2">
+                      <button 
+                        type="button" 
+                        className="btn btn-outline-danger px-3 rounded-pill"
+                        onClick={(e) => handleDeleteClick(viewProduct.id, e)}
+                      >
+                        <i className="fa-solid fa-trash me-1"></i> Delete
+                      </button>
+                      <button 
+                        type="button" 
+                        className="btn btn-primary px-4 rounded-pill"
+                        onClick={(e) => handleEditClick(viewProduct, e)}
+                      >
+                        <i className="fa-solid fa-pen me-1"></i> Edit Details
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -436,7 +703,7 @@ const AdminDashboard = () => {
                                   type="checkbox"
                                   role="switch"
                                   checked={u.active}
-                                  onChange={() => toggleStatus(u.id)}
+                                  onChange={() => toggleStatus(u)}
                                 />
                               </div>
 
@@ -510,7 +777,7 @@ const AdminDashboard = () => {
           </div>
         );
 
-      case 'add-medicine':
+      case 'add-product':
         return (
           <div className="content-body">
             <h4 className="page-title text-center mb-4">
@@ -550,7 +817,7 @@ const AdminDashboard = () => {
                     type="text"
                     name="category"
                     className="form-control"
-                    placeholder="Enter category (e.g. Electronics, Tools)"
+                    placeholder="Enter category (e.g. Camping, Digital, Tools)"
                     value={newProduct.category}
                     onChange={handleInputChange}
                     required
@@ -602,17 +869,17 @@ const AdminDashboard = () => {
                   </div>
 
                   <div className="mb-3">
-                  <label className="form-label fw-medium">Image URL</label>
-                  <input
-                    type="text"
-                    name="img"
-                    className="form-control"
-                    placeholder="Enter Image URL"
-                    value={newProduct.img}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
+                    <label className="form-label fw-medium">Image URL</label>
+                    <input
+                      type="text"
+                      name="img"
+                      className="form-control"
+                      placeholder="Enter Image URL"
+                      value={newProduct.img}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
                 </div>
 
                 <button type="submit" className="btn btn-primary w-100 mt-2 py-2 fw-semibold">
@@ -652,8 +919,8 @@ const AdminDashboard = () => {
             Dashboard
           </li>
           <li
-            className={`sidebar-menu-item ${activeTab === 'view-medicines' ? 'active' : ''}`}
-            onClick={() => handleTabChange('view-medicines')}
+            className={`sidebar-menu-item ${activeTab === 'view-products' ? 'active' : ''}`}
+            onClick={() => handleTabChange('view-products')}
           >
             View All Products
           </li>
@@ -670,8 +937,8 @@ const AdminDashboard = () => {
             View All Orders
           </li>
           <li
-            className={`sidebar-menu-item ${activeTab === 'add-medicine' ? 'active' : ''}`}
-            onClick={() => handleTabChange('add-medicine')}
+            className={`sidebar-menu-item ${activeTab === 'add-product' ? 'active' : ''}`}
+            onClick={() => handleTabChange('add-product')}
           >
             Add New Product
           </li>

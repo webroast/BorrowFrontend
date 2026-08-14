@@ -54,7 +54,7 @@ const Register = ({ onLogin }) => {
       alert("Registration Successful!");
 
       // Automatic redirect to User Dashboard
-      navigate("/userdashboard");
+      navigate("/login");
 
     } catch (error) {
       console.error("Registration Error:", error);

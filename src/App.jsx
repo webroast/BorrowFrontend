@@ -15,6 +15,7 @@ import Register from './Pages/Register'
 import NotFound from './Pages/NotFound'
 import Admindashboard from './Pages/Admindashboard';
 import Userdashboard from './Pages/Userdashboard';
+import Cart from './Pages/Cart';
 
 function App() {
 
@@ -31,6 +32,7 @@ function App() {
         <Route path='/reviews' element={<Reviews />} />
         <Route path='/wishlist' element={<Wishlist />} />
         <Route path='/register' element={<Register />} />
+        <Route path='/cart' element={<Cart />} />
         <Route path='/admindashboard' element={<Admindashboard />} />
         <Route path='/userdashboard' element={<Userdashboard />} />
         <Route path='*' element={<NotFound />} />

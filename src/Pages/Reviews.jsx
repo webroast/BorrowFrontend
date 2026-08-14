@@ -1,11 +1,55 @@
 import React from 'react'
 import Header from '../Component/Header'
 import Footer from '../Component/Footer'
-import reviewsBgImg from '../Images/Categories.png' 
-// 👇 Make sure this path points to your JSON file location containing the 6 reviews
-import reviewsData from '../Images/Reviews.json' 
+import reviewimg from '../Images/Reviewsheroimg.png' 
 
 const Reviews = () => {
+  // Dynamic Reviews Data Array
+  const reviewsData = [
+    {
+      id: 1,
+      name: "Aarav Sharma",
+      role: "Photography Enthusiast",
+      stars: "⭐⭐⭐⭐⭐",
+      text: "Renting a Sony A7 IV for a weekend road trip was completely hassle-free. The lender was super cooperative and the gear was in pristine condition. Saved me thousands!"
+    },
+    {
+      id: 2,
+      name: "Priya Patel",
+      role: "DIY Hobbyist",
+      stars: "⭐⭐⭐⭐⭐",
+      text: "Needed a heavy-duty drill for a one-day home renovation project. Found one just 2 km away in 10 minutes. This platform is an absolute game-changer!"
+    },
+    {
+      id: 3,
+      name: "Rohan Verma",
+      role: "Camping & Trekking Lover",
+      stars: "⭐⭐⭐⭐⭐",
+      text: "Borrowed complete camping gear including a 4-person tent and trekking poles. Smooth handoff, reasonable pricing, and easy returns. Highly recommended."
+    },
+    {
+      id: 4,
+      name: "Sneha Nair",
+      role: "Event Planner",
+      stars: "⭐⭐⭐⭐⭐",
+      text: "Instead of buying expensive ambient party lights and speakers for a single gig, I rented them here. Everything worked flawlessly and cut down event overheads."
+    },
+    {
+      id: 5,
+      name: "Vikram Malhotra",
+      role: "Equipment Lender",
+      stars: "⭐⭐⭐⭐⭐",
+      text: "Listing my idle drone and stabilizer helped me earn steady side income. The verification process gives peace of mind knowing my gear is in responsible hands."
+    },
+    {
+      id: 6,
+      name: "Ananya Iyer",
+      role: "Student Filmmaker",
+      stars: "⭐⭐⭐⭐⭐",
+      text: "As a student on a tight budget, renting cinema lenses per day made my graduation project look premium without burning a hole in my pocket."
+    }
+  ]
+
   return (
     <>
       <style>{`
@@ -19,9 +63,10 @@ const Reviews = () => {
 
         .reviews-hero-image {
           width: 100%;
-          height: 90vh;
+          height: 70vh;
           display: block;
           filter: grayscale(25%);
+          object-fit: cover;
         }
 
         .reviews-hero-overlay {
@@ -30,7 +75,7 @@ const Reviews = () => {
           left: 0;
           width: 100%;
           height: 100%;
-          background: rgba(0, 0, 0, 0.65);
+          background: rgba(0, 0, 0, 0.40);
           z-index: 1;
         }
 
@@ -57,50 +102,59 @@ const Reviews = () => {
           text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
         }
 
-        .reviews-hero-content p {
-          font-size: 1.2rem;
-          margin-top: 15px;
-          color: #e2e8f0;
-          text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
-        }
-
+        /* LIGHT/WHITE THEME MATCHING CATEGORIES & CONTACT */
         .reviews-list-section {
-          background-color: #0f172a;
-          padding: 60px 0 20px 0; /* Tightened bottom padding for the transition */
+          background-color: #ffffff;
+          padding: 80px 0 20px 0;
         }
 
         .full-width-review-card {
-          background: rgba(255, 255, 255, 0.05) !important;
-          backdrop-filter: blur(4px);
-          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+          background: #ffffff !important;
+          border: 1.5px solid #bfdbfe !important; /* Soft light-blue border */
           border-radius: 16px !important;
-          transition: transform 0.2s ease, border-color 0.2s ease;
+          box-shadow: 0 2px 8px rgba(13, 110, 253, 0.04);
+          transition: all 0.25s ease-in-out;
         }
 
         .full-width-review-card:hover {
-          transform: translateY(-2px);
-          border-color: #0d6efd !important;
+          transform: translateY(-3px);
+          border-color: #93c5fd !important;
+          box-shadow: 0 8px 20px rgba(13, 110, 253, 0.08) !important;
         }
 
-        /* Small Call-to-Action Styling at the bottom */
+        .review-author-name {
+          color: #0f172a;
+        }
+
+        .review-author-role {
+          color: #64748b;
+        }
+
+        .review-body-text {
+          color: #475569;
+          line-height: 1.7;
+          font-size: 1.02rem;
+        }
+
+        /* Closing CTA Section (White Theme) */
         .reviews-cta-section {
-          background-color: #0f172a;
-          padding: 40px 0 60px 0;
+          background-color: #ffffff;
+          padding: 40px 0 80px 0;
         }
 
         .cta-small-text {
-          color: #94a3b8;
+          color: #64748b;
           font-size: 0.95rem;
-          max-width: 500px;
+          max-width: 550px;
           margin: 0 auto;
-          line-height: 1.5;
+          line-height: 1.6;
         }
 
         .cta-btn-link {
           color: #0d6efd;
           text-decoration: none;
           font-weight: 600;
-          transition: color 0.2s ease;
+          transition: all 0.2s ease;
         }
 
         .cta-btn-link:hover {
@@ -115,33 +169,32 @@ const Reviews = () => {
       {/* Hero Header Section with Background Image */}
       <div className="reviews-hero-wrapper">
         <img 
-          src="https://images.unsplash.com/photo-1613963931023-5dc59437c8a6?q=80&w=1169&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          src={reviewimg}
           alt="Customer Reviews Background" 
           className="reviews-hero-image" 
         />
         <div className="reviews-hero-overlay"></div>
         <div className="reviews-hero-content pt-5">
-          <h1 className='text-bottom mt-3'>Customer Reviews</h1>
-          <p>See what our community members are saying <br />about their renting and lending experiences.</p>
+          <h1 className="text-bottom mt-3">Customer Reviews</h1>
         </div>
       </div>
 
-      {/* Dynamic Full-Width Reviews Section */}
-      <div className="reviews-list-section text-white">
+      {/* Dynamic Full-Width Reviews Section (White Theme) */}
+      <div className="reviews-list-section">
         <div className="container" style={{ maxWidth: '900px' }}>
           <div className="row g-4">
             {reviewsData.map((review) => (
               <div key={review.id} className="col-12">
-                <div className="card p-4 full-width-review-card text-white">
+                <div className="card p-4 full-width-review-card">
                   <div className="card-body">
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <div>
-                        <h5 className="fw-bold mb-0 text-white">{review.name}</h5>
-                        <small className="text-secondary">{review.role}</small>
+                        <h5 className="fw-bold mb-0 review-author-name">{review.name}</h5>
+                        <small className="review-author-role">{review.role}</small>
                       </div>
                       <div className="fs-5">{review.stars}</div>
                     </div>
-                    <p className="card-text lh-base mb-0" style={{ fontSize: '1.05rem', color: '#cbd5e1' }}>
+                    <p className="card-text mb-0 review-body-text">
                       "{review.text}"
                     </p>
                   </div>
@@ -152,8 +205,8 @@ const Reviews = () => {
         </div>
       </div>
 
-      {/* ✅ Added Small Closing CTA Section */}
-      <div className="reviews-cta-section text-center text-white">
+      {/* Small Closing CTA Section */}
+      <div className="reviews-cta-section text-center">
         <div className="container">
           <div className="cta-small-text">
             Have you borrowed or lent gear through our platform recently? We'd love to hear your story. 

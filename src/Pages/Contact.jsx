@@ -1,22 +1,50 @@
 import React from 'react'
 import Header from '../Component/Header'
 import Footer from '../Component/Footer'
-// 👇 EDIT THIS PATH to point to your background image file
-import contactBgImg from '../Images/Categories.png' 
+import contactBgImg from '../Images/Contactus.png'
 
 const Contact = () => {
+  // Dynamic Contact Data Array
+  const contactInfo = [
+    {
+      id: 1,
+      iconClass: 'fa-solid fa-phone',
+      title: 'Call or WhatsApp',
+      description: 'Reach us directly for swift platform support and order queries.',
+      actionText: '+91 8942 00 8221',
+      link: 'tel:+918942008221',
+      badge: 'Available 9 AM - 8 PM'
+    },
+    {
+      id: 2,
+      iconClass: 'fa-solid fa-envelope',
+      title: 'Email Support',
+      description: 'Send us your inquiries, feedback, or listing assistance requests anytime.',
+      actionText: 'support@justborrowit.com',
+      link: 'mailto:support@justborrowit.com',
+      badge: '24/7 Response'
+    },
+    {
+      id: 3,
+      iconClass: 'fa-brands fa-instagram',
+      title: 'Instagram DM',
+      description: 'Follow our updates or drop us a message anytime on social media.',
+      actionText: '@justborrrowit',
+      link: 'https://instagram.com/justborrrowit',
+      badge: 'Social Support'
+    }
+  ]
+
   return (
     <>
       <style>{`
         .contact-hero-wrapper {
           position: relative;
           width: 100%;
-          height: 55vh;
+          height: 70vh;
           overflow: hidden;
-          background-color: #0f172a;
         }
 
-        /* ✅ Added background image styling matching the categories layout */
         .contact-hero-image {
           width: 100%;
           height: 100%;
@@ -24,14 +52,13 @@ const Contact = () => {
           filter: grayscale(25%);
         }
 
-        /* ✅ Added dark overlay over the image so your text stays perfectly readable */
         .contact-hero-overlay {
           position: absolute;
           top: 0;
           left: 0;
           width: 100%;
           height: 100%;
-          background: rgba(0, 0, 0, 0.65);
+          background: rgba(0, 0, 0, 0.45);
           z-index: 1;
         }
 
@@ -65,100 +92,128 @@ const Contact = () => {
           text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
         }
 
+        /* LIGHT/WHITE THEME MATCHING CATEGORIES */
         .contact-info-section {
-          background-color: #0f172a;
+          background-color: #ffffff;
           padding: 80px 0;
         }
 
         .contact-card {
-          transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-          background: rgba(255, 255, 255, 0.06) !important;
-          backdrop-filter: blur(4px);
-          border: 1px solid rgba(255, 255, 255, 0.15) !important;
-          border-radius: 20px !important;
+          background: #ffffff !important;
+          border: 1.5px solid #bfdbfe !important; /* Soft light-blue border */
+          border-radius: 16px !important;
+          box-shadow: 0 2px 8px rgba(13, 110, 253, 0.04);
+          transition: all 0.25s ease-in-out;
         }
 
         .contact-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3) !important;
-          border-color: #0d6efd !important;
+          transform: translateY(-4px);
+          border-color: #93c5fd !important;
+          box-shadow: 0 8px 20px rgba(13, 110, 253, 0.1) !important;
+        }
+
+        .contact-icon-wrapper {
+          width: 70px;
+          height: 70px;
+          border-radius: 50%;
+          background-color: #eff6ff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 20px auto;
+          border: 1px solid #dbeafe;
+          transition: transform 0.2s ease;
+        }
+
+        .contact-card:hover .contact-icon-wrapper {
+          transform: scale(1.08);
+          background-color: #dbeafe;
         }
 
         .contact-icon {
-          font-size: 3.5rem;
-          margin-bottom: 15px;
+          font-size: 2rem;
           color: #0d6efd;
-          display: inline-block;
+        }
+
+        .contact-card-title {
+          color: #0f172a;
+        }
+
+        .contact-card-text {
+          color: #64748b;
+          line-height: 1.6;
         }
 
         .contact-link {
-          color: #94a3b8;
+          display: inline-block;
+          padding: 10px 24px;
+          background-color: #eff6ff;
+          color: #0d6efd;
+          border: 1px solid #bfdbfe;
+          border-radius: 50px;
           text-decoration: none;
-          transition: color 0.2s ease;
+          font-weight: 600;
+          transition: all 0.2s ease;
         }
 
         .contact-link:hover {
-          color: #0d6efd;
+          background-color: #0d6efd;
+          color: #ffffff;
+          border-color: #0d6efd;
         }
       `}</style>
 
       {/* Top White Bar + Navbar only */}
       <Header hideHero={true} />
 
-      {/* Hero Header Section with Background Image */}
+      {/* Hero Header Section */}
       <div className="contact-hero-wrapper">
         <img 
-          src="https://images.unsplash.com/photo-1640969178204-261969c1305c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          src={contactBgImg}
           alt="Contact Us Background" 
           className="contact-hero-image" 
         />
         <div className="contact-hero-overlay"></div>
         <div className="contact-hero-content">
           <h1>Contact Our Team</h1>
-          <p>Got questions about borrowing or listing? <br />We're here to help you pull it off seamlessly.</p>
         </div>
       </div>
 
-      {/* Contact Cards Grid Section */}
-      <div className="contact-info-section text-white">
+      {/* Dynamic Contact Cards Section (White Theme) */}
+      <div className="contact-info-section">
         <div className="container">
           <div className="row g-4 justify-content-center">
             
-            {/* Phone & WhatsApp Contact Card */}
-            <div className="col-12 col-md-6 col-lg-4">
-              <div className="card h-100 p-4 text-center contact-card text-white">
-                <div className="card-body d-flex flex-column justify-content-center align-items-center">
-                  <span className="contact-icon">
-                    <i className="fa-solid fa-phone"></i>
-                  </span>
-                  <h4 className="card-title fw-bold mb-3">Call or WhatsApp</h4>
-                  <p className="card-text text-secondary small mb-4">
-                    Reach us directly for swift platform support and order queries.
-                  </p>
-                  <a href="tel:+918942008221" className="fw-bold contact-link">
-                    +91 8942 00 8221
-                  </a>
-                </div>
-              </div>
-            </div>
+            {contactInfo.map((item) => (
+              <div key={item.id} className="col-12 col-md-6 col-lg-4">
+                <div className="card h-100 p-4 text-center contact-card">
+                  <div className="card-body d-flex flex-column justify-content-between align-items-center">
+                    
+                    <div>
+                      {/* Dynamic Icon */}
+                      <div className="contact-icon-wrapper">
+                        <i className={`${item.iconClass} contact-icon`}></i>
+                      </div>
 
-            {/* Instagram Contact Card */}
-            <div className="col-12 col-md-6 col-lg-4">
-              <div className="card h-100 p-4 text-center contact-card text-white">
-                <div className="card-body d-flex flex-column justify-content-center align-items-center">
-                  <span className="contact-icon">
-                    <i className="fa-brands fa-instagram"></i>
-                  </span>
-                  <h4 className="card-title fw-bold mb-3">Instagram DM</h4>
-                  <p className="card-text text-secondary small mb-4">
-                    Follow our updates or drop us a message anytime on social media.
-                  </p>
-                  <a href="#" className="fw-bold contact-link">
-                    @justborrrowit
-                  </a>
+                      <h4 className="card-title fw-bold mb-2 contact-card-title">{item.title}</h4>
+                      <p className="card-text small mb-4 contact-card-text">{item.description}</p>
+                    </div>
+
+                    <div>
+                      <a 
+                        href={item.link} 
+                        target={item.link.startsWith('http') ? '_blank' : '_self'} 
+                        rel="noreferrer" 
+                        className="contact-link"
+                      >
+                        {item.actionText}
+                      </a>
+                    </div>
+
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
 
           </div>
         </div>

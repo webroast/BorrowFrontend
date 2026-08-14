@@ -37,8 +37,10 @@ const Login = () => {
       alert("Login Successful...");
       if (response.data.role === "ROLE_ADMIN") {
         navigate("/admindashboard");
+        alert("Welcome Back...! Admin...");
       } else {
         navigate("/userdashboard");
+        alert(`Welcome Back...! ${response.data.username || 'User'}`);
       }
     } catch (error) {
       console.error("Login Error:", error);
@@ -176,7 +178,7 @@ const Login = () => {
         }
       `}</style>
 
-      <Header hideHero={true} />
+        
 
       <div className="login-hero-wrapper">
         <img

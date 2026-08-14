@@ -1,8 +1,7 @@
 import React from 'react'
 import Header from '../Component/Header'
 import Footer from '../Component/Footer'
-import categoryImg from '../Images/Categories.png'
-import categoriesData from '../Images/CategoriesData.json' 
+import catimg from '../Images/CategoriesBackground.png'
 
 const Categories = () => {
 
@@ -29,7 +28,7 @@ const Categories = () => {
           left: 0;
           width: 100%;
           height: 100%;
-          background: rgba(0, 0, 0, 0.55);
+          background: rgba(0, 0, 0, 0.30);
           z-index: 1;
         }
 
@@ -74,62 +73,38 @@ const Categories = () => {
           align-items: center;
         }
 
-        /* Dynamic Grid Layout Styles */
-        .categories-grid-section {
-          background-color: #0f172a; 
-          padding: 80px 0 40px 0; 
-        }
-
-        .category-card {
-          transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-          background: rgba(255, 255, 255, 0.06) !important;
-          backdrop-filter: blur(4px);
-          border: 1px solid rgba(255, 255, 255, 0.15) !important;
-          border-radius: 20px !important;
-        }
-
-        .category-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3) !important;
-          border-color: #0d6efd !important; 
-        }
-
-        .category-icon {
-          font-size: 3.5rem;
-          margin-bottom: 15px;
-          display: inline-block;
-        }
-
-        .explore-btn {
-          border-radius: 50px !important;
-          font-weight: 600;
-          transition: all 0.2s ease;
-        }
-
-        .explore-btn:hover {
-          background-color: #0d6efd !important;
-          color: #ffffff !important;
-        }
-
-        /* FAQ CUSTOM STYLES */
+        /* FAQ CUSTOM STYLES (SOFT LIGHT-BLUE ACCENT THEME) */
         .faq-section {
-          background-color: #0f172a; 
-          padding-bottom: 80px;
+          background-color: #ffffff; 
+          padding: 80px 0;
+        }
+
+        .faq-section h2 {
+          color: #0f172a;
         }
 
         .faq-accordion .accordion-item {
-          background-color: rgba(255, 255, 255, 0.04) !important;
-          border: 1px solid rgba(255, 255, 255, 0.1) !important;
-          border-radius: 12px !important;
-          margin-bottom: 15px;
+          background-color: #ffffff !important;
+          border: 1.5px solid #bfdbfe !important; /* Soft light-blue border */
+          border-radius: 14px !important;
+          margin-bottom: 16px;
           overflow: hidden;
+          box-shadow: 0 2px 8px rgba(13, 110, 253, 0.04);
+          transition: all 0.25s ease-in-out;
+        }
+
+        .faq-accordion .accordion-item:hover {
+          border-color: #93c5fd !important; /* Slightly deeper on hover */
+          box-shadow: 0 6px 16px rgba(13, 110, 253, 0.08);
+          transform: translateY(-2px);
         }
 
         .faq-accordion .accordion-button {
           background-color: transparent !important;
-          color: #ffffff !important;
+          color: #1e293b !important;
           font-weight: 600;
-          padding: 20px;
+          font-size: 1.05rem;
+          padding: 20px 24px;
           box-shadow: none !important;
           width: 100%;
           text-align: left;
@@ -137,16 +112,18 @@ const Categories = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          transition: color 0.2s ease;
         }
 
         .faq-accordion .accordion-button:not(.collapsed) {
           color: #0d6efd !important;
+          background-color: #f8faff !important; /* Very subtle blue tint when open */
         }
 
         .faq-arrow {
-          transition: transform 0.2s ease;
+          transition: transform 0.25s ease;
           font-size: 0.8rem;
-          color: rgba(255, 255, 255, 0.5);
+          color: #60a5fa;
         }
         
         .faq-accordion .accordion-button:not(.collapsed) .faq-arrow {
@@ -155,69 +132,42 @@ const Categories = () => {
         }
 
         .faq-accordion .accordion-body {
-          color: #94a3b8 !important; 
-          line-height: 1.6;
-          padding: 20px;
-          background-color: rgba(0, 0, 0, 0.15);
-          border-top: 1px solid rgba(255, 255, 255, 0.05);
+          color: #475569 !important; 
+          line-height: 1.7;
+          font-size: 0.95rem;
+          padding: 20px 24px;
+          background-color: #ffffff;
+          border-top: 1px solid #e0f2fe; /* Soft divider inside */
         }
       `}</style>
 
       {/* Top White Bar + Navbar only */}
       <Header hideHero={true} />
 
+      {/* Hero Section */}
       <div className="categories-hero-wrapper">
         <img
-          src={categoryImg}
+          src={catimg}
           alt="Categories Background"
           className="categories-hero-image"
         />
         <div className="categories-hero-overlay"></div>
         <div className="categories-hero-content">
-          <div className="categories-left-text">
+          {/* <div className="categories-left-text">
             <h1>Explore Our Categories</h1>
             <p>Find anything you need — <br />borrow it, use it, return it.</p>
-          </div>
+          </div> */}
           <div className="categories-right-content"></div>
         </div>
       </div>
 
-      {/* Grid mapping from categoriesData.json */}
-      <div className="categories-grid-section text-white">
-        <div className="container">
-          <div className="row g-4">
-            {categoriesData.map((category) => (
-              <div key={category.id} className="col-12 col-md-6 col-lg-3">
-                <div className="card h-100 p-4 text-center category-card text-white">
-                  <div className="card-body d-flex flex-column justify-content-between">
-                    <div>
-                      <span className="category-icon">{category.icon}</span>
-                      <h4 className="card-title fw-bold mb-2">{category.title}</h4>
-                      <p className="card-text text-secondary small mb-4">{category.description}</p>
-                    </div>
-                    <div>
-                      <span className="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 mb-3 d-inline-block fw-semibold">
-                        {category.count} Items Listed
-                      </span>
-                      <button className="btn btn-outline-primary w-100 explore-btn">
-                        Explore Category
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* FAQ Accordion Section */}
-      <div className="faq-section text-white">
+      <div className="faq-section">
         <div className="container" style={{ maxWidth: '800px' }}>
           
           <div className="text-center mb-5">
             <h2 className="fw-bold">Frequently Asked Questions</h2>
-            <p className="text-secondary">Got questions about how borrowing works? We have answers.</p>
+            <p className="text-muted">Got questions about how borrowing works? We have answers.</p>
           </div>
 
           <div className="accordion faq-accordion">
