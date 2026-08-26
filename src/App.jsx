@@ -15,7 +15,9 @@ import Register from './Pages/Register'
 import NotFound from './Pages/NotFound'
 import Admindashboard from './Pages/Admindashboard';
 import Userdashboard from './Pages/Userdashboard';
+import MyOrders from './Pages/MyOrders';
 import Cart from './Pages/Cart';
+
 
 function App() {
 
@@ -35,6 +37,8 @@ function App() {
         <Route path='/cart' element={<Cart />} />
         <Route path='/admindashboard' element={<Admindashboard />} />
         <Route path='/userdashboard' element={<Userdashboard />} />
+        <Route path='/myorders' element={<MyOrders />} />
+        
         <Route path='*' element={<NotFound />} />
       </Routes>
     </BrowserRouter>

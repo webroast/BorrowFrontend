@@ -1,8 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import borrowImg from '../Images/HeaderFooterMainLogo.png'
 import '../CSS/Admin.css';
 import axios from 'axios';
+
+ 
 
 const CATEGORIES_LIST = [
   { id: 'digital', name: 'Digital', icon: 'fa-laptop' },
@@ -179,22 +182,17 @@ const AdminDashboard = () => {
     }
   };
 
-  // ==========================================
-  // TOGGLE USER STATUS & SYNC WITH DATABASE
-  // ==========================================
+  // Toggle User Status
   const toggleStatus = async (user) => {
     const newStatus = !user.active;
 
-    // 1. Optimistic Update (Update UI immediately)
     setUsers((prevUsers) =>
       prevUsers.map((u) =>
         u.id === user.id ? { ...u, active: newStatus } : u
       )
     );
 
-    // 2. Persist to Backend API
     try {
-      // Updates the user active status on the backend
       await axios.patch(
         `http://localhost:8080/users/updatestatus/${user.id}`,
         null,
@@ -207,7 +205,6 @@ const AdminDashboard = () => {
       console.error("Error updating user status in database:", error);
       alert("Failed to update status in database. Reverting changes.");
       
-      // Rollback UI if backend call fails
       setUsers((prevUsers) =>
         prevUsers.map((u) =>
           u.id === user.id ? { ...u, active: !newStatus } : u
@@ -567,13 +564,19 @@ const AdminDashboard = () => {
 
                       <div className="col-md-6 mb-3">
                         <label className="form-label fw-medium">Category</label>
-                        <input 
-                          type="text" 
-                          className="form-control" 
+                        <select
+                          className="form-select"
                           value={editProduct.category}
                           onChange={(e) => setEditProduct({...editProduct, category: e.target.value})}
                           required
-                        />
+                        >
+                          <option value="" disabled>Select category</option>
+                          {CATEGORIES_LIST.map((cat) => (
+                            <option key={cat.id} value={cat.name}>
+                              {cat.name}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 
@@ -593,7 +596,7 @@ const AdminDashboard = () => {
                         <label className="form-label fw-medium">Price (₹)</label>
                         <input 
                           type="number" 
-                          step="0.01"
+                          step="0.01" 
                           className="form-control" 
                           value={editProduct.price}
                           onChange={(e) => setEditProduct({...editProduct, price: parseFloat(e.target.value) || 0})}
@@ -616,9 +619,9 @@ const AdminDashboard = () => {
                         <label className="form-label fw-medium">Rating (0 - 5)</label>
                         <input 
                           type="number" 
-                          step="0.1"
-                          max="5"
-                          min="0"
+                          step="0.1" 
+                          max="5" 
+                          min="0" 
                           className="form-control" 
                           value={editProduct.rating}
                           onChange={(e) => setEditProduct({...editProduct, rating: parseFloat(e.target.value) || 0})}
@@ -811,17 +814,23 @@ const AdminDashboard = () => {
                   ></textarea>
                 </div>
 
+                {/* CATEGORY SELECT DROPDOWN */}
                 <div className="mb-3">
                   <label className="form-label fw-medium">Category</label>
-                  <input
-                    type="text"
+                  <select
                     name="category"
-                    className="form-control"
-                    placeholder="Enter category (e.g. Camping, Digital, Tools)"
+                    className="form-select"
                     value={newProduct.category}
                     onChange={handleInputChange}
                     required
-                  />
+                  >
+                    <option value="" disabled>Select category</option>
+                    {CATEGORIES_LIST.map((cat) => (
+                      <option key={cat.id} value={cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="row">
@@ -903,11 +912,14 @@ const AdminDashboard = () => {
     <div className="medishop-admin-container">
       {/* SIDEBAR NAVIGATION */}
       <aside className="medishop-sidebar">
-        <div className="sidebar-brand-box">
-          <h2 className="logo m-0">
-            <span className="medi">Bor</span>
-            <span className="shop">row</span>
-          </h2>
+        <div className="sidebar-brand-box d-flex align-items-center justify-content-between">
+          {/* Logo Image */}
+          <img 
+            src={borrowImg} 
+            alt="Borrow Logo" 
+            className="sidebar-logo-img img-fluid borrowImg"
+            style={{width: '150px', maxHeight: '70px', objectFit: 'contain' }}
+          />
           <span className="admin-badge">Admin</span>
         </div>
 

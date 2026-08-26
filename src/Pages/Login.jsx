@@ -8,13 +8,16 @@ import logo from '../Images/HeaderFooterMainLogo.png';
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
+      // 1. Authenticate user
       const response = await axios.post(
         "http://localhost:8080/users/login",
         null,
@@ -25,30 +28,65 @@ const Login = () => {
           }
         }
       );
-      console.log(response.data);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: response.data.id,
-          role: response.data.role,
-          user: response.data
-        })
-      );
-      alert("Login Successful...");
-      if (response.data.role === "ROLE_ADMIN") {
-        navigate("/admindashboard");
+
+      const userData = response.data;
+      const userId = userData.id || userData.userId;
+
+      // 2. Store normalized user data
+      const userPayload = {
+        id: userId,
+        email: userData.email,
+        username: userData.username || userData.name || 'User',
+        role: userData.role,
+        ...userData
+      };
+
+      localStorage.setItem("user", JSON.stringify(userPayload));
+
+      // 3. Fetch user's persistent cart from the database
+      if (userId) {
+        try {
+          const cartResponse = await axios.get(`http://localhost:8080/api/cart/cartitem/${userId}`);
+          if (Array.isArray(cartResponse.data)) {
+            const dbCart = cartResponse.data.map((item) => {
+              const prod = item.product || item.hardware || item.medicines || item.item || item;
+              return {
+                cartId: item.id,
+                productId: prod.id || prod.productId || item.productId,
+                name: prod.productName || prod.hardwareName || prod.itemName || prod.MedicineName || prod.name || 'Rental Item',
+                price: Number(prod.price ?? prod.Price ?? prod.perDayPrice ?? 0),
+                image: prod.image || prod.img,
+                quantity: Number(item.quantity) || 1
+              };
+            });
+
+            localStorage.setItem('cart', JSON.stringify(dbCart));
+          }
+        } catch (cartErr) {
+          console.warn("Could not sync persistent cart on login:", cartErr);
+        }
+      }
+
+      // 4. Trigger UI event to update Navbar/Badges
+      window.dispatchEvent(new Event('storage'));
+
+      // 5. Navigate based on role
+      if (userData.role === "ROLE_ADMIN") {
         alert("Welcome Back...! Admin...");
+        navigate("/admindashboard");
       } else {
+        alert(`Welcome Back...! ${userData.username || 'User'}`);
         navigate("/userdashboard");
-        alert(`Welcome Back...! ${response.data.username || 'User'}`);
       }
     } catch (error) {
       console.error("Login Error:", error);
-      if (error.response) {
-        alert(error.response.data);
+      if (error.response && error.response.data) {
+        alert(typeof error.response.data === 'string' ? error.response.data : 'Invalid email or password.');
       } else {
-        alert("Server Error");
+        alert("Server Error. Please check if your backend is running.");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,15 +103,18 @@ const Login = () => {
           width: 100%;
           height: 100%;
           position: absolute;
-          top: 0; left: 0;
+          top: 0; 
+          left: 0;
           object-fit: cover;
           filter: grayscale(30%);
         }
         .login-hero-overlay {
           position: absolute;
-          top: 0; left: 0;
-          width: 100%; height: 100%;
-          background: rgba(0,0,0,0.60);
+          top: 0; 
+          left: 0;
+          width: 100%; 
+          height: 100%;
+          background: rgba(0, 0, 0, 0.60);
           z-index: 1;
         }
         .login-hero-content {
@@ -85,25 +126,60 @@ const Login = () => {
           min-height: 100vh;
           gap: 40px;
         }
-        .login-left-text { flex: 1; color: #fff; padding-right: 20px; }
-        .login-left-text h1 { font-size: 3rem; font-weight: 800; line-height: 1.2; text-shadow: 2px 2px 8px rgba(0,0,0,0.5); }
-        .login-left-text p { font-size: 1.2rem; margin-top: 15px; color: #e2e8f0; line-height: 1.7; }
-        .login-left-text .highlight { color: #60a5fa; font-weight: 700; }
-        .login-right-form { flex: 1.2; display: flex; justify-content: center; align-items: center; }
+        .login-left-text { 
+          flex: 1; 
+          color: #fff; 
+          padding-right: 20px; 
+        }
+        .login-left-text h1 { 
+          font-size: 3rem; 
+          font-weight: 800; 
+          line-height: 1.2; 
+          text-shadow: 2px 2px 8px rgba(0,0,0,0.5); 
+        }
+        .login-left-text p { 
+          font-size: 1.2rem; 
+          margin-top: 15px; 
+          color: #e2e8f0; 
+          line-height: 1.7; 
+        }
+        .login-left-text .highlight { 
+          color: #60a5fa; 
+          font-weight: 700; 
+        }
+        .login-right-form { 
+          flex: 1.2; 
+          display: flex; 
+          justify-content: center; 
+          align-items: center; 
+        }
         
         .login-formcontainer {
-          background: rgba(255,255,255,0.08);
-          backdrop-filter: blur(2px);
-          border: 1px solid rgba(255,255,255,0.15);
+          background: rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(4px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
           border-radius: 20px;
           padding: 40px 48px;
           width: 100%;
           max-width: 500px;
         }
         
-        .login-specs { height: 45px; width: auto; margin-bottom: 12px; }
-        .login-heading { font-size: 1.8rem; color: #fff; margin-bottom: 5px; font-weight: 300; }
-        .login-subtext { color: rgba(255,255,255,0.55); font-size: 0.85rem; margin-bottom: 20px; }
+        .login-specs { 
+          height: 45px; 
+          width: auto; 
+          margin-bottom: 12px; 
+        }
+        .login-heading { 
+          font-size: 1.8rem; 
+          color: #fff; 
+          margin-bottom: 5px; 
+          font-weight: 300; 
+        }
+        .login-subtext { 
+          color: rgba(255, 255, 255, 0.55); 
+          font-size: 0.85rem; 
+          margin-bottom: 20px; 
+        }
         
         .login-google-btn {
           background: #fff;
@@ -121,16 +197,29 @@ const Login = () => {
           gap: 10px;
           margin-bottom: 18px;
           cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
         .login-google-btn:hover {
           background: #f1f5f9;
           transform: translateY(-2px);
-          box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
         }
-        .login-divider { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
-        .login-divider hr { flex: 1; border-color: rgba(255,255,255,0.2); opacity: 1; }
-        .login-divider span { color: rgba(255,255,255,0.5); font-size: 0.85rem; white-space: nowrap; }
+        .login-divider { 
+          display: flex; 
+          align-items: center; 
+          gap: 10px; 
+          margin-bottom: 18px; 
+        }
+        .login-divider hr { 
+          flex: 1; 
+          border-color: rgba(255, 255, 255, 0.2); 
+          opacity: 1; 
+        }
+        .login-divider span { 
+          color: rgba(255, 255, 255, 0.5); 
+          font-size: 0.85rem; 
+          white-space: nowrap; 
+        }
         
         .login-label { 
           color: #fff; 
@@ -138,18 +227,20 @@ const Login = () => {
           font-weight: 700; 
           margin-bottom: 6px; 
           display: block; 
-          text-align: center;
+          text-align: left;
         }
         .login-input {
-          background: rgba(255,255,255,0.08) !important;
-          border: 1px solid rgba(255,255,255,0.3) !important;
+          background: rgba(255, 255, 255, 0.08) !important;
+          border: 1px solid rgba(255, 255, 255, 0.3) !important;
           color: #fff !important;
           border-radius: 10px !important;
           margin-bottom: 16px;
           padding: 12px 16px;
           width: 100%;
         }
-        .login-input::placeholder { color: rgba(255,255,255,0.45) !important; }
+        .login-input::placeholder { 
+          color: rgba(255, 255, 255, 0.45) !important; 
+        }
         .login-submit-btn {
           width: 100%;
           border-radius: 50px;
@@ -163,22 +254,52 @@ const Login = () => {
           margin-bottom: 15px;
           cursor: pointer;
         }
-        .login-submit-btn:hover { background-color: #0b5ed7; transform: translateY(-2px); }
-        .login-register-link { text-align: center; color: rgba(255,255,255,0.6); font-size: 0.88rem; margin: 0; }
-        .login-register-link a { color: #93c5fd; text-decoration: none; font-weight: 600; }
-        .login-register-link a:hover { text-decoration: underline; }
+        .login-submit-btn:hover { 
+          background-color: #0b5ed7; 
+          transform: translateY(-2px); 
+        }
+        .login-submit-btn:disabled {
+          background-color: #6c757d;
+          cursor: not-allowed;
+          transform: none;
+        }
+        .login-register-link { 
+          text-align: center; 
+          color: rgba(255, 255, 255, 0.6); 
+          font-size: 0.88rem; 
+          margin: 0; 
+        }
+        .login-register-link a { 
+          color: #93c5fd; 
+          text-decoration: none; 
+          font-weight: 600; 
+        }
+        .login-register-link a:hover { 
+          text-decoration: underline; 
+        }
         
         @media (max-width: 768px) {
-          .login-hero-content { flex-direction: column; padding: 30px 20px; min-height: auto; }
-          .login-left-text { padding-right: 0; text-align: center; }
+          .login-hero-content { 
+            flex-direction: column; 
+            padding: 30px 20px; 
+            min-height: auto; 
+          }
+          .login-left-text { 
+            padding-right: 0; 
+            text-align: center; 
+          }
           .login-left-text h1 { font-size: 2rem; }
           .login-left-text p { font-size: 1rem; }
           .login-right-form { width: 100%; }
-          .login-formcontainer { padding: 25px 20px; max-width: 100%; }
+          .login-formcontainer { 
+            padding: 25px 20px; 
+            max-width: 100%; 
+          }
         }
       `}</style>
 
-        
+      {/* Top Header */}
+      <Header hideHero={true} />
 
       <div className="login-hero-wrapper">
         <img
@@ -242,7 +363,13 @@ const Login = () => {
                   required
                 />
 
-                <button type="submit" className="login-submit-btn" onClick={navigate}>Log In</button>
+                <button 
+                  type="submit" 
+                  className="login-submit-btn" 
+                  disabled={loading}
+                >
+                  {loading ? 'Logging In...' : 'Log In'}
+                </button>
               </form>
 
               <p className="login-register-link">

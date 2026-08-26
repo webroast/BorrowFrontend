@@ -1,36 +1,132 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Header from '../Component/Header'
 import Footer from '../Component/Footer'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import axios from 'axios'
 import wishimg from '../Images/Wishlistimg.png'
 
-const Wishlist = ({ wishlist = [], toggleWishlist, isLoggedIn }) => {
-  const [borrowItem, setBorrowItem] = useState(null)
-  const [showModal, setShowModal] = useState(false)
-  const [borrowDate, setBorrowDate] = useState('')
-  const [borrowTime, setBorrowTime] = useState('')
-  const [showSuccess, setShowSuccess] = useState(false)
+const Wishlist = () => {
+  const navigate = useNavigate()
+  const [user, setUser] = useState(null)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [wishlist, setWishlist] = useState([])
 
-  const handleBorrowClick = (items) => {
-    setBorrowItem(items)
-    setShowModal(true)
-    setShowSuccess(false)
-    setBorrowDate('')
-    setBorrowTime('')
+  // Format backend or external image URLs directly using http://localhost:8080/
+  const getFullImageUrl = (imageSrc) => {
+    if (!imageSrc) return 'https://via.placeholder.com/300x220?text=No+Image'
+    if (imageSrc.startsWith('http://') || imageSrc.startsWith('https://') || imageSrc.startsWith('data:')) {
+      return imageSrc
+    }
+    const cleanPath = imageSrc.startsWith('/') ? imageSrc.substring(1) : imageSrc
+    return `http://localhost:8080/${cleanPath}`
   }
 
-  const handleConfirm = () => {
-    if (!borrowDate || !borrowTime) {
-      alert('Please select both a Date and a Time!')
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user')
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser)
+        setUser(parsed)
+        setIsLoggedIn(true)
+      } catch (err) {
+        console.error('Error parsing user data:', err)
+      }
+    }
+
+    const savedWishlist = JSON.parse(localStorage.getItem('wishlist')) || []
+
+    const normalized = savedWishlist.map((item) => {
+      const prod = item.medicines || item.product || item.item || item
+      return {
+        id: prod.id || prod.productId || item.productId || item.id,
+        name: prod.MedicineName || prod.productName || prod.itemName || prod.name || 'Rental Item',
+        image: getFullImageUrl(prod.img || prod.image || prod.imageUrl || item.image),
+        price: Number(prod.Price ?? prod.price ?? prod.perDayPrice ?? 0)
+      }
+    })
+
+    setWishlist(normalized)
+  }, [])
+
+  const toggleWishlist = (item) => {
+    const updated = wishlist.filter((w) => w.id !== item.id)
+    setWishlist(updated)
+    localStorage.setItem('wishlist', JSON.stringify(updated))
+  }
+
+  // Add single item directly to database
+  const addToCartFromWishlist = async (item) => {
+    if (!user || !user.id) {
+      alert('Please log in to add items to your cart!')
+      navigate('/login')
       return
     }
-    setShowSuccess(true)
+
+    try {
+      await axios.post('http://localhost:8080/api/cart/addtocart', null, {
+        params: {
+          userid: user.id,
+          productid: item.id,
+          quantity: 1
+        }
+      })
+
+      const existingCart = JSON.parse(localStorage.getItem('cart')) || []
+      const existingIndex = existingCart.findIndex((c) => c.productId === item.id || c.id === item.id)
+
+      if (existingIndex !== -1) {
+        existingCart[existingIndex].quantity = (existingCart[existingIndex].quantity || 1) + 1
+      } else {
+        existingCart.push({
+          id: item.id,
+          productId: item.id,
+          name: item.name,
+          image: item.image,
+          price: item.price,
+          quantity: 1
+        })
+      }
+
+      localStorage.setItem('cart', JSON.stringify(existingCart))
+      window.dispatchEvent(new Event('storage'))
+
+      alert(`${item.name} added to cart!`)
+    } catch (err) {
+      console.error('Error adding item to cart:', err)
+      alert('Failed to add item to cart. Please try again.')
+    }
   }
 
-  const closeModal = () => {
-    setShowModal(false)
-    setBorrowItem(null)
-    setShowSuccess(false)
+  // Move all items directly to database and navigate to /cart
+  const handleMoveAllToCart = async () => {
+    if (wishlist.length === 0) return
+
+    if (!user || !user.id) {
+      alert('Please log in to move items to your cart!')
+      navigate('/login')
+      return
+    }
+
+    try {
+      await Promise.all(
+        wishlist.map((item) =>
+          axios.post('http://localhost:8080/api/cart/addtocart', null, {
+            params: {
+              userid: user.id,
+              productid: item.id,
+              quantity: 1
+            }
+          })
+        )
+      )
+
+      setWishlist([])
+      localStorage.removeItem('wishlist')
+      navigate('/cart')
+    } catch (err) {
+      console.error('Error transferring items to cart:', err)
+      alert('Could not move all items to cart. Please check your backend connection.')
+    }
   }
 
   const itemCount = wishlist.length
@@ -39,11 +135,10 @@ const Wishlist = ({ wishlist = [], toggleWishlist, isLoggedIn }) => {
   return (
     <>
       <style>{`
-        /* ── HERO SECTION ── */
         .wishlist-hero-wrapper {
           position: relative;
           width: 100%;
-          height: 70vh;
+          height: 65vh;
           overflow: hidden;
           background-color: #0f172a;
         }
@@ -52,25 +147,19 @@ const Wishlist = ({ wishlist = [], toggleWishlist, isLoggedIn }) => {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          filter: grayscale(25%);
+          filter: grayscale(20%);
         }
 
         .wishlist-hero-overlay {
           position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
+          inset: 0;
           background: rgba(0, 0, 0, 0.55);
           z-index: 1;
         }
 
         .wishlist-hero-content {
           position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
+          inset: 0;
           z-index: 2;
           display: flex;
           flex-direction: column;
@@ -82,16 +171,9 @@ const Wishlist = ({ wishlist = [], toggleWishlist, isLoggedIn }) => {
         }
 
         .wishlist-hero-content h1 {
-          font-size: 3rem;
+          font-size: 2.8rem;
           font-weight: 800;
           text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
-        }
-
-        .wishlist-hero-content p {
-          font-size: 1.15rem;
-          margin-top: 12px;
-          color: #e2e8f0;
-          text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
         }
 
         .wishlist-count-badge {
@@ -103,35 +185,32 @@ const Wishlist = ({ wishlist = [], toggleWishlist, isLoggedIn }) => {
           font-weight: 700;
           margin-left: 12px;
           vertical-align: middle;
-          box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
         }
 
-        /* ── LIGHT THEME BODY SECTION ── */
         .wishlist-body-section {
-          background-color: #ffffff;
-          padding: 80px 0;
+          background-color: #f8fafc;
+          padding: 70px 0;
           min-height: 55vh;
         }
 
-        /* ── CARDS WITH SOFT LIGHT-BLUE BORDER ── */
         .wishlist-item-card {
           background-color: #ffffff !important;
-          border: 1.5px solid #bfdbfe !important;
-          border-radius: 18px !important;
+          border: 1px solid #e2e8f0 !important;
+          border-radius: 16px !important;
           overflow: hidden;
-          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-          box-shadow: 0 2px 8px rgba(13, 110, 253, 0.04);
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
 
         .wishlist-item-card:hover {
           transform: translateY(-4px);
-          border-color: #93c5fd !important;
           box-shadow: 0 10px 24px rgba(13, 110, 253, 0.1) !important;
+          border-color: #bfdbfe !important;
         }
 
         .wishlist-img-container {
           position: relative;
-          height: 220px;
+          height: 200px;
           width: 100%;
           overflow: hidden;
           background-color: #f1f5f9;
@@ -164,19 +243,17 @@ const Wishlist = ({ wishlist = [], toggleWishlist, isLoggedIn }) => {
           cursor: pointer;
           transition: all 0.2s ease;
           z-index: 3;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
 
         .remove-wishlist-btn:hover {
           background-color: #ffe4e6;
           transform: scale(1.1);
-          color: #be123c;
         }
 
         .wishlist-card-title {
           color: #0f172a;
           font-weight: 700;
-          font-size: 1.1rem;
+          font-size: 1.05rem;
         }
 
         .wishlist-price-tag {
@@ -185,247 +262,52 @@ const Wishlist = ({ wishlist = [], toggleWishlist, isLoggedIn }) => {
           font-size: 1rem;
         }
 
-        /* ── BOTTOM BORROW CTA BUTTON ── */
-        .borrow-cta-btn {
+        .wishlist-add-cart-btn {
+          background-color: #0d6efd;
+          color: #ffffff;
+          border: none;
+          border-radius: 50px;
+          padding: 8px 16px;
+          font-size: 0.88rem;
+          font-weight: 600;
+          transition: background-color 0.2s ease;
+          cursor: pointer;
+        }
+
+        .wishlist-add-cart-btn:hover {
+          background-color: #0b5ed7;
+        }
+
+        .move-all-cart-btn {
           border-radius: 50px;
           font-weight: 700;
-          transition: all 0.25s ease;
           background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
           border: none;
           color: #ffffff;
-          padding: 16px 44px;
-          font-size: 1.05rem;
+          padding: 14px 38px;
+          font-size: 1rem;
           cursor: pointer;
-          box-shadow: 0 4px 14px rgba(13, 110, 253, 0.35);
+          box-shadow: 0 4px 14px rgba(13, 110, 253, 0.3);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .borrow-cta-btn:hover {
+        .move-all-cart-btn:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(13, 110, 253, 0.45);
+          box-shadow: 0 6px 18px rgba(13, 110, 253, 0.4);
         }
 
-        /* ── EMPTY & NOT LOGGED IN STATES ── */
         .empty-state-box {
-          max-width: 460px;
+          max-width: 440px;
           margin: 0 auto;
           padding: 50px 20px;
           text-align: center;
-        }
-
-        .empty-state-icon {
-          font-size: 4rem;
-          color: #bfdbfe;
-          margin-bottom: 20px;
-        }
-
-        .empty-state-title {
-          color: #0f172a;
-          font-weight: 800;
-          margin-bottom: 8px;
-        }
-
-        .empty-state-text {
-          color: #64748b;
-          font-size: 0.95rem;
-          margin-bottom: 24px;
-        }
-
-        /* ── BOOKING MODAL STYLING ── */
-        .wb-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(15, 23, 42, 0.6);
-          backdrop-filter: blur(4px);
-          z-index: 10000;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 15px;
-        }
-
-        .wb-box {
-          background: #ffffff;
-          border-radius: 20px;
-          padding: 32px;
-          width: 100%;
-          max-width: 440px;
-          box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
-          border: 1px solid #bfdbfe;
-          animation: modalPop 0.25s ease-out;
-        }
-
-        @keyframes modalPop {
-          from { transform: scale(0.95); opacity: 0; }
-          to { transform: scale(1); opacity: 1; }
-        }
-
-        .wb-box h5 {
-          font-weight: 800;
-          color: #0f172a;
-          margin-bottom: 12px;
-        }
-
-        .wb-item-name {
-          color: #0d6efd;
-          font-size: 0.92rem;
-          font-weight: 600;
-        }
-
-        .wb-box label {
-          font-size: 0.88rem;
-          font-weight: 600;
-          color: #334155;
-          margin-bottom: 6px;
-          display: block;
-        }
-
-        .wb-box input {
-          width: 100%;
-          border: 1.5px solid #cbd5e1;
-          border-radius: 10px;
-          padding: 10px 14px;
-          font-size: 0.95rem;
-          margin-bottom: 16px;
-          color: #0f172a;
-          transition: border-color 0.2s ease;
-        }
-
-        .wb-box input:focus {
-          outline: none;
-          border-color: #0d6efd;
-          box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
-        }
-
-        .wb-success {
-          background: #f0fdf4;
-          border: 1.5px solid #86efac;
-          border-radius: 14px;
-          padding: 24px 20px;
-          text-align: center;
-          color: #166534;
-        }
-
-        .wb-success .success-icon {
-          font-size: 3rem;
-          margin-bottom: 8px;
-        }
-
-        .wb-success h5 {
-          font-weight: 800;
-          font-size: 1.25rem;
-          margin-bottom: 8px;
-          color: #15803d;
-        }
-
-        .wb-success p {
-          font-size: 0.9rem;
-          color: #166534;
-          line-height: 1.5;
-          margin: 0;
-        }
-
-        .wb-success .email-note {
-          margin-top: 12px;
-          font-size: 0.82rem;
-          color: #166534;
-          background: rgba(22, 101, 52, 0.08);
-          border-radius: 8px;
-          padding: 8px 12px;
         }
       `}</style>
 
       <Header hideHero={true} />
 
-      {/* Booking Confirmation Modal */}
-      {showModal && (
-        <div className="wb-overlay" onClick={closeModal}>
-          <div className="wb-box" onClick={(e) => e.stopPropagation()}>
-            {showSuccess ? (
-              <div>
-                <div className="wb-success">
-                  <div className="success-icon">✅</div>
-                  <h5>Booking Confirmed!</h5>
-                  <p>
-                    {Array.isArray(borrowItem) &&
-                      borrowItem.map((it, i) => (
-                        <span key={i}>
-                          <strong>{it.name || it.itemName}</strong>
-                          {i < borrowItem.length - 1 ? ', ' : ''}
-                        </span>
-                      ))}
-                    {' '}booked for <strong>{borrowDate}</strong> at <strong>{borrowTime}</strong>.
-                  </p>
-                  <div className="email-note">
-                    📧 Confirmation email sent to your registered email!
-                  </div>
-                </div>
-                <button 
-                  className="btn btn-primary rounded-pill w-100 mt-3 py-2 fw-semibold" 
-                  onClick={closeModal}
-                >
-                  Done
-                </button>
-              </div>
-            ) : (
-              <div>
-                <h5>📦 Confirm Borrow Request</h5>
-                <div className="mb-3 p-3 bg-light rounded-3">
-                  {Array.isArray(borrowItem) &&
-                    borrowItem.map((it, i) => (
-                      <p key={i} className="wb-item-name mb-1">
-                        • {it.name || it.itemName}
-                        {it.perDayPrice ? ` — ₹${it.perDayPrice}/day` : ''}
-                      </p>
-                    ))}
-                </div>
-
-                <label htmlFor="wbDate">📅 Select Date</label>
-                <input
-                  id="wbDate"
-                  type="date"
-                  value={borrowDate}
-                  onChange={(e) => setBorrowDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                />
-
-                <label htmlFor="wbTime">⏰ Select Time</label>
-                <input
-                  id="wbTime"
-                  type="time"
-                  value={borrowTime}
-                  onChange={(e) => setBorrowTime(e.target.value)}
-                />
-
-                <div className="d-flex gap-2 mt-2">
-                  <button 
-                    className="btn btn-primary rounded-pill flex-grow-1 fw-bold py-2" 
-                    onClick={handleConfirm}
-                  >
-                    Confirm Booking
-                  </button>
-                  <button 
-                    className="btn btn-outline-secondary rounded-pill px-4 py-2" 
-                    onClick={closeModal}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Hero Section */}
       <div className="wishlist-hero-wrapper">
-        <img
-          src={wishimg}
-          alt="Wishlist Hero"
-          className="wishlist-hero-image"
-        />
+        <img src={wishimg} alt="Wishlist Banner" className="wishlist-hero-image" />
         <div className="wishlist-hero-overlay"></div>
         <div className="wishlist-hero-content">
           <h1>
@@ -434,39 +316,22 @@ const Wishlist = ({ wishlist = [], toggleWishlist, isLoggedIn }) => {
               <span className="wishlist-count-badge">{wishlist.length}</span>
             )}
           </h1>
-          {/* <p>
-            Keep track of the premium gear and tools <br />
-            you want to borrow for upcoming projects.
-          </p> */}
         </div>
       </div>
 
-      {/* Wishlist Items List Section */}
       <div className="wishlist-body-section">
         <div className="container">
-
-          {/* Not logged in State */}
           {!isLoggedIn && (
             <div className="empty-state-box">
-              <div className="empty-state-icon">
-                <i className="fa-solid fa-lock"></i>
-              </div>
-              <h3 className="empty-state-title">Login to See Your Wishlist</h3>
-              <p className="empty-state-text">
-                You need to be signed in to view and save items to your wishlist.
-              </p>
-              <div className="d-flex gap-3 justify-content-center flex-wrap">
-                <Link to="/login" className="btn btn-primary px-4 rounded-pill fw-semibold py-2">
-                  Login
-                </Link>
-                <Link to="/register" className="btn btn-outline-primary px-4 rounded-pill fw-semibold py-2">
-                  Register with Google
-                </Link>
+              <h3 className="fw-bold mb-2">Login to View Wishlist</h3>
+              <p className="text-muted mb-4">Sign in to sync and transfer your saved items directly to the database cart.</p>
+              <div className="d-flex gap-2 justify-content-center">
+                <Link to="/login" className="btn btn-primary rounded-pill px-4">Login</Link>
+                <Link to="/register" className="btn btn-outline-primary rounded-pill px-4">Register</Link>
               </div>
             </div>
           )}
 
-          {/* Logged in + Has Items */}
           {isLoggedIn && wishlist.length > 0 && (
             <div>
               <div className="row g-4">
@@ -476,64 +341,58 @@ const Wishlist = ({ wishlist = [], toggleWishlist, isLoggedIn }) => {
                       <div className="wishlist-img-container">
                         <img
                           src={item.image}
-                          alt={item.name || item.itemName}
+                          alt={item.name}
                           className="wishlist-item-img"
+                          onError={(e) => {
+                            e.target.onerror = null
+                            e.target.src = 'https://via.placeholder.com/300x220?text=No+Image'
+                          }}
                         />
                         <button
                           className="remove-wishlist-btn"
-                          title="Remove from Wishlist"
+                          title="Remove item"
                           onClick={() => toggleWishlist(item)}
                         >
-                          <i className="fa-solid fa-heart"></i>
+                          ✕
                         </button>
                       </div>
 
-                      <div className="card-body p-4 d-flex flex-column justify-content-between">
+                      <div className="card-body p-3 d-flex flex-column justify-content-between">
                         <div>
-                          <h5 className="wishlist-card-title mb-2">
-                            {item.name || item.itemName}
-                          </h5>
-                          {item.perDayPrice && (
-                            <span className="wishlist-price-tag">
-                              ₹{item.perDayPrice}/day
-                            </span>
-                          )}
+                          <h6 className="wishlist-card-title mb-1 text-truncate" title={item.name}>
+                            {item.name}
+                          </h6>
+                          <span className="wishlist-price-tag">
+                            ₹{Number(item.price).toFixed(2)}
+                          </span>
                         </div>
+                        <button
+                          className="wishlist-add-cart-btn mt-3"
+                          onClick={() => addToCartFromWishlist(item)}
+                        >
+                          + Add to Cart
+                        </button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Bottom Multi-Item Confirmation CTA */}
               <div className="text-center mt-5">
-                <button
-                  className="borrow-cta-btn"
-                  onClick={() => handleBorrowClick(wishlist)}
-                >
-                  <i className="fa-solid fa-calendar-check me-2"></i>
-                  Borrow All &amp; Place Confirmation ({btnLabel})
+                <button className="move-all-cart-btn" onClick={handleMoveAllToCart}>
+                  Move All to Cart ({btnLabel}) &amp; Proceed
                 </button>
               </div>
             </div>
           )}
 
-          {/* Logged in + Empty Wishlist */}
           {isLoggedIn && wishlist.length === 0 && (
             <div className="empty-state-box">
-              <div className="empty-state-icon">
-                <i className="fa-regular fa-heart"></i>
-              </div>
-              <h3 className="empty-state-title">Your Wishlist is Empty</h3>
-              <p className="empty-state-text">
-                Explore available items and tap the ❤️ Heart icon to save them here for later.
-              </p>
-              <Link to="/" className="btn btn-primary px-4 rounded-pill fw-semibold py-2">
-                Browse Items
-              </Link>
+              <h3 className="fw-bold mb-2">Your Wishlist is Empty</h3>
+              <p className="text-muted mb-4">Browse available items and add them to your wishlist to keep track of your favorites.</p>
+              <Link to="/" className="btn btn-primary rounded-pill px-4">Browse Items</Link>
             </div>
           )}
-
         </div>
       </div>
 

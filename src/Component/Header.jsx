@@ -16,7 +16,7 @@ const Header = ({
   hideHero, 
   isLoggedIn, 
   onLogout,
-  cartCount = 0 // Optional prop to pass dynamic cart item count
+  cartCount = 0
 }) => {
   const [isScrolled, setIsScrolled] = useState(window.scrollY > 90);
   const navigate = useNavigate();
@@ -32,12 +32,16 @@ const Header = ({
     } else {
       if (window.confirm("Are you sure you want to log out?")) {
         localStorage.removeItem("user");
+        localStorage.removeItem("wishlist");
+        localStorage.removeItem("cart");
+        localStorage.removeItem("token");
+        localStorage.removeItem("isLoggedIn");
         navigate("/login");
       }
     }
   };
 
-  // ── Scroll Listener for Transparent / Sticky Nav ──
+  // Scroll Listener for Sticky Nav
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 90);
@@ -136,7 +140,6 @@ const Header = ({
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             z-index: 1100;
           }
-          /* Tooltip small arrow */
           .cart-tooltip::before {
             content: '';
             position: absolute;
@@ -159,26 +162,109 @@ const Header = ({
             transform: translateX(-50%) translateY(0);
           }
 
-          /* ── LOGOUT CAPSULE BUTTON ── */
+          /* ── EXACT-WIDTH BUTTON & DROPDOWN ── */
+          .user-auth-wrapper {
+            position: relative;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding-bottom: 4px;
+          }
+
           .logout-pill-btn {
-            background-color: #dc3545;
-            color: #ffffff !important;
-            border: none;
-            border-radius: 50px;
-            padding: 6px 18px;
+            background-color: transparent;
+            color: #dc3545 !important;
+            border: 1.2px solid #dc3545;
+            border-radius: 30px;
+            padding: 3px 12px;
             font-weight: 600;
-            font-size: 0.88rem;
-            transition: all 0.3s ease;
+            font-size: 0.78rem;
+            letter-spacing: 0.2px;
+            transition: all 0.2s ease;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            box-shadow: 0 3px 10px rgba(220, 53, 69, 0.25);
+            justify-content: center;
+            gap: 5px;
+            white-space: nowrap;
           }
-          .logout-pill-btn:hover {
-            background-color: #bb2d3b;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 14px rgba(220, 53, 69, 0.35);
+
+          .user-auth-wrapper:hover .logout-pill-btn {
+            background-color: #dc3545;
+            color: #ffffff !important;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.25);
+          }
+
+          .user-auth-wrapper:hover .logout-pill-btn i {
+            color: #ffffff !important;
+          }
+
+          /* Dropdown matching exact button width */
+          .user-hover-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            width: 100%;
+            min-width: 100%;
+            box-sizing: border-box;
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 4px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            border: 1px solid #f1f5f9;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(5px);
+            transition: all 0.2s ease;
+            z-index: 1200;
+          }
+
+          .user-auth-wrapper:hover .user-hover-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+          }
+
+          .user-hover-item {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 6px 8px;
+            color: #475569;
+            font-size: 0.76rem;
+            font-weight: 500;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.15s ease, color 0.15s ease;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            width: 100%;
+            white-space: nowrap;
+          }
+
+          .user-hover-item i {
+            font-size: 0.75rem;
+            width: 14px;
+            text-align: center;
+          }
+
+          .user-hover-item:hover {
+            background-color: #f8fafc;
+            color: #0d6efd;
+          }
+
+          .user-hover-item.logout-option:hover {
+            background-color: #fff1f2;
+            color: #dc3545;
+          }
+
+          .user-hover-divider {
+            height: 1px;
+            background-color: #f1f5f9;
+            margin: 3px 0;
           }
 
           /* ── TOPBAR MOBILE ── */
@@ -235,16 +321,36 @@ const Header = ({
               </a>
             </li>
 
-            {/* Login Icon OR Logout Capsule Button */}
+            {/* Compact Login/Logout Section */}
             <li className="d-flex align-items-center">
               {userIsLoggedIn ? (
-                <button 
-                  type="button" 
-                  className="logout-pill-btn" 
-                  onClick={handleLogoutClick}
-                >
-                  <i className="fa-solid fa-right-from-bracket"></i> Logout
-                </button>
+                <div className="user-auth-wrapper">
+                  <button 
+                    type="button" 
+                    className="logout-pill-btn"
+                    onClick={handleLogoutClick}
+                  >
+                    <i className="fa-solid fa-right-from-bracket" style={{ fontSize: '0.75rem' }}></i> Logout
+                    <i className="fa-solid fa-chevron-down" style={{ fontSize: '0.65rem' }}></i>
+                  </button>
+
+                  {/* Clean Dropdown with identical button width */}
+                  <div className="user-hover-menu">
+                    <Link to="/userdashboard" className="user-hover-item">
+                      <i className="fa-solid fa-gauge-high text-primary"></i>
+                      <span>Dashboard</span>
+                    </Link>
+                    <div className="user-hover-divider"></div>
+                    <button 
+                      type="button" 
+                      className="user-hover-item logout-option" 
+                      onClick={handleLogoutClick}
+                    >
+                      <i className="fa-solid fa-arrow-right-from-bracket text-danger"></i>
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <Link className='header-links' to="/login">
                   <img className='login-img' src={loginimg} alt="Login" />
@@ -258,7 +364,7 @@ const Header = ({
 
       <div className="hero-wrapper">
 
-        {/* Navbar — toggles between transparent-nav and solid-sticky-nav bg-light on scroll */}
+        {/* Navbar */}
         <nav className={`container-fluid Navbar d-flex justify-content-between align-items-center ${isScrolled ? 'solid-sticky-nav bg-light' : 'transparent-nav'}`}>
           <div>
             <Link to="/">
@@ -287,7 +393,7 @@ const Header = ({
               </Link>
             </li>
 
-            {/* Cart Icon with Dynamic Badge & Tooltip */}
+            {/* Cart Icon */}
             <li>
               <Link 
                 className='header-links cart-nav-link cart-tooltip me-4' 
@@ -301,6 +407,13 @@ const Header = ({
                     {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 )}
+              </Link>
+            </li>
+
+             <li>
+              <Link className='header-links' to="/myorders">
+                <span>Myorders </span>
+                <i className="fa-solid fa-heart" style={{ color: '#e11d48' }}></i>
               </Link>
             </li>
           </ul>
