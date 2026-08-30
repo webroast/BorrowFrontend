@@ -27,11 +27,11 @@ const Cart = () => {
     const prod = item.product || item.hardware || item.medicines || item.item || item
 
     return {
-      cartId: item.id, // ID of Cart record for /patch/{id} and /delete/{id}
-      productId: prod.id || prod.productId || item.productId,
-      name: prod.productName || prod.hardwareName || prod.MedicineName || prod.name || 'Hardware Item',
-      price: Number(prod.price ?? prod.Price ?? prod.perDayPrice ?? prod.rentalPrice ?? 0),
-      image: getFullImageUrl(prod.img || prod.image || prod.imageUrl || item.image),
+      cartId: item.cartId || item.id || item.cart_id,
+      productId: prod?.id || prod?.productId || item.productId,
+      name: prod?.productName || prod?.hardwareName || prod?.MedicineName || prod?.name || 'Hardware Item',
+      price: Number(prod?.price ?? prod?.Price ?? prod?.perDayPrice ?? prod?.rentalPrice ?? 0),
+      image: getFullImageUrl(prod?.img || prod?.image || prod?.imageUrl || item.image),
       quantity: Number(item.quantity) || 1
     }
   }
@@ -45,11 +45,14 @@ const Cart = () => {
         const parsedItems = response.data.map(normalizeCartItem)
         setCartItems(parsedItems)
         localStorage.setItem('cart', JSON.stringify(parsedItems))
+      } else {
+        setCartItems([])
+        localStorage.removeItem('cart')
       }
     } catch (error) {
       console.error('Error fetching cart from DB:', error)
-      const fallback = JSON.parse(localStorage.getItem('cart')) || []
-      setCartItems(fallback.map(normalizeCartItem))
+      // Only set empty if fetch fails to prevent stale items appearing
+      setCartItems([])
     } finally {
       setLoading(false)
     }
@@ -78,19 +81,22 @@ const Cart = () => {
   // 2. PATCH: http://localhost:8080/api/cart/patch/{id} (Increase)
   const increaseQuantity = async (item) => {
     const newQuantity = item.quantity + 1
+    const targetCartId = item.cartId || item.id
 
     setCartItems((prev) =>
-      prev.map((i) => (i.cartId === item.cartId ? { ...i, quantity: newQuantity } : i))
+      prev.map((i) => ((i.cartId || i.id) === targetCartId ? { ...i, quantity: newQuantity } : i))
     )
 
     try {
-      await axios.patch(`http://localhost:8080/api/cart/patch/${item.cartId}`, {
-        quantity: newQuantity
-      })
+      if (targetCartId) {
+        await axios.patch(`http://localhost:8080/api/cart/patch/${targetCartId}`, {
+          quantity: newQuantity
+        })
+      }
     } catch (err) {
       console.error('Error updating quantity:', err)
       setCartItems((prev) =>
-        prev.map((i) => (i.cartId === item.cartId ? { ...i, quantity: item.quantity } : i))
+        prev.map((i) => ((i.cartId || i.id) === targetCartId ? { ...i, quantity: item.quantity } : i))
       )
     }
   }
@@ -100,19 +106,22 @@ const Cart = () => {
     if (item.quantity <= 1) return
 
     const newQuantity = item.quantity - 1
+    const targetCartId = item.cartId || item.id
 
     setCartItems((prev) =>
-      prev.map((i) => (i.cartId === item.cartId ? { ...i, quantity: newQuantity } : i))
+      prev.map((i) => ((i.cartId || i.id) === targetCartId ? { ...i, quantity: newQuantity } : i))
     )
 
     try {
-      await axios.patch(`http://localhost:8080/api/cart/patch/${item.cartId}`, {
-        quantity: newQuantity
-      })
+      if (targetCartId) {
+        await axios.patch(`http://localhost:8080/api/cart/patch/${targetCartId}`, {
+          quantity: newQuantity
+        })
+      }
     } catch (err) {
       console.error('Error updating quantity:', err)
       setCartItems((prev) =>
-        prev.map((i) => (i.cartId === item.cartId ? { ...i, quantity: item.quantity } : i))
+        prev.map((i) => ((i.cartId || i.id) === targetCartId ? { ...i, quantity: item.quantity } : i))
       )
     }
   }
@@ -122,15 +131,24 @@ const Cart = () => {
     const confirmDelete = window.confirm('Are you sure you want to delete this item?')
     if (!confirmDelete) return
 
+    const targetCartId = item.cartId || item.id
+
     try {
-      await axios.delete(`http://localhost:8080/api/cart/delete/${item.cartId}`)
-      const updated = cartItems.filter((i) => i.cartId !== item.cartId)
-      setCartItems(updated)
-      localStorage.setItem('cart', JSON.stringify(updated))
-      window.dispatchEvent(new Event('storage'))
+      if (targetCartId) {
+        await axios.delete(`http://localhost:8080/api/cart/delete/${targetCartId}`)
+      }
     } catch (err) {
-      console.error('Error removing item:', err)
-      alert('Failed to delete item from cart.')
+      console.warn('Item already deleted or not found in DB, removing from UI:', err)
+    } finally {
+      // Direct state filter
+      setCartItems((prevItems) => {
+        const updated = prevItems.filter(
+          (i) => (i.cartId || i.id) !== targetCartId && i.name !== item.name
+        )
+        localStorage.setItem('cart', JSON.stringify(updated))
+        window.dispatchEvent(new Event('storage'))
+        return updated
+      })
     }
   }
 

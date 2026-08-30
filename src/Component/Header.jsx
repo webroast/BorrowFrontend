@@ -87,7 +87,7 @@ const Header = ({
         {`
           /* ── HERO ── */
           .hero-wrapper { position: relative; width: 100%; }
-          .hero-container { position: relative; width: 100%; height: 75vh; overflow: hidden; background-color: #000; }
+          .hero-container { position: relative; width: 100%; height: 80vh; overflow: hidden; background-color: #000; }
           .hero-video { width: 100%; height: 100%; filter: grayscale(40%); object-fit: cover; }
           .hero-image { width: 100%; height: 100%; object-fit: cover; filter: grayscale(40%); }
           .hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 1; }
@@ -406,7 +406,7 @@ const Header = ({
             <li><Link className='header-links' to="/about">About Us</Link></li>
             <li><Link className='header-links' to="/categories">Categories</Link></li>
             <li>
-              <Link className='header-links custom-tooltip-link' to="/howitworks" data-tooltip="How It Works">
+              <Link className='header-links custom-tooltip-link' to="/ordersummary" data-tooltip="How It Works">
                 <i className="fa-solid fa-gear gear-one"></i>
                 <i className="fa-solid fa-gear gear-two"></i>
               </Link>

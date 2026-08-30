@@ -17,6 +17,8 @@ import Admindashboard from './Pages/Admindashboard';
 import Userdashboard from './Pages/Userdashboard';
 import MyOrders from './Pages/MyOrders';
 import Cart from './Pages/Cart';
+import Forgotpassword from './Pages/Forgotpassword';
+import OrderSummary from './Pages/OrderSummary';
 
 
 function App() {
@@ -38,6 +40,9 @@ function App() {
         <Route path='/admindashboard' element={<Admindashboard />} />
         <Route path='/userdashboard' element={<Userdashboard />} />
         <Route path='/myorders' element={<MyOrders />} />
+        <Route path='/forgotpassword' element={<Forgotpassword />} />
+        <Route path='/ordersummary' element={<OrderSummary />} />
+
         
         <Route path='*' element={<NotFound />} />
       </Routes>

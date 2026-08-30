@@ -190,7 +190,7 @@ const Wishlist = () => {
         .wishlist-body-section {
           background-color: #f8fafc;
           padding: 70px 0;
-          min-height: 55vh;
+          min-height: 80vh;
         }
 
         .wishlist-item-card {

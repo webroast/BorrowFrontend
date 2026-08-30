@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Header from '../Component/Header';
 import Footer from '../Component/Footer';
+import forgotpassword from './Forgotpassword';
 import logo from '../Images/HeaderFooterMainLogo.png';
 
 const Login = () => {
@@ -267,7 +268,7 @@ const Login = () => {
           text-align: center; 
           color: rgba(255, 255, 255, 0.6); 
           font-size: 0.88rem; 
-          margin: 0; 
+          margin-bottom: 8px; 
         }
         .login-register-link a { 
           color: #93c5fd; 
@@ -276,6 +277,20 @@ const Login = () => {
         }
         .login-register-link a:hover { 
           text-decoration: underline; 
+        }
+        .login-forgot-link {
+          text-align: center;
+          color: rgba(255, 255, 255, 0.6);
+          font-size: 0.88rem;
+          margin: 0;
+        }
+        .login-forgot-link a {
+          color: #93c5fd;
+          text-decoration: none;
+          font-weight: 600;
+        }
+        .login-forgot-link a:hover {
+          text-decoration: underline;
         }
         
         @media (max-width: 768px) {
@@ -353,7 +368,7 @@ const Login = () => {
                   required
                 />
 
-                <label className="login-label">Password</label>
+                <label className="login-label d-flex justify-content-between">Password<Link to="/forgotpassword">Reset Password</Link></label>
                 <input
                   type="password"
                   className="form-control login-input"
@@ -375,6 +390,8 @@ const Login = () => {
               <p className="login-register-link">
                 Don't have an account? <Link to="/register">Register Now</Link>
               </p>
+
+              
             </div>
           </div>
         </div>
