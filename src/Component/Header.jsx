@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { ShoppingCart } from 'lucide-react'
+import { ShoppingCart, LogOut, ChevronDown, LayoutDashboard, UserPen } from 'lucide-react'
 import '../CSS/Header.css'
 import logovideo from '../Images/Scene.mp4'
 import loginimg from '../Images/login.png'
@@ -206,7 +206,7 @@ const Header = ({
             color: #dc3545 !important;
             border: 1.2px solid #dc3545;
             border-radius: 30px;
-            padding: 3px 12px;
+            padding: 4px 12px;
             font-weight: 600;
             font-size: 0.78rem;
             letter-spacing: 0.2px;
@@ -225,18 +225,18 @@ const Header = ({
             box-shadow: 0 2px 8px rgba(220, 53, 69, 0.25);
           }
 
-          .user-auth-wrapper:hover .logout-pill-btn i {
+          .user-auth-wrapper:hover .logout-pill-btn svg {
             color: #ffffff !important;
           }
 
-          /* Dropdown matching exact button width */
+          /* Dropdown Menu */
           .user-hover-menu {
             position: absolute;
             top: 100%;
             left: 0;
             right: 0;
             width: 100%;
-            min-width: 100%;
+            min-width: 140px;
             box-sizing: border-box;
             background: #ffffff;
             border-radius: 8px;
@@ -260,7 +260,7 @@ const Header = ({
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            gap: 6px;
+            gap: 7px;
             padding: 6px 8px;
             color: #475569;
             font-size: 0.76rem;
@@ -273,12 +273,6 @@ const Header = ({
             background: transparent;
             width: 100%;
             white-space: nowrap;
-          }
-
-          .user-hover-item i {
-            font-size: 0.75rem;
-            width: 14px;
-            text-align: center;
           }
 
           .user-hover-item:hover {
@@ -360,14 +354,20 @@ const Header = ({
                     className="logout-pill-btn"
                     onClick={handleLogoutClick}
                   >
-                    <i className="fa-solid fa-right-from-bracket" style={{ fontSize: '0.75rem' }}></i> Logout
-                    <i className="fa-solid fa-chevron-down" style={{ fontSize: '0.65rem' }}></i>
+                    <LogOut size={13} strokeWidth={2.2} />
+                    <span>Logout</span>
+                    <ChevronDown size={12} strokeWidth={2.2} />
                   </button>
 
                   <div className="user-hover-menu">
                     <Link to="/userdashboard" className="user-hover-item">
-                      <i className="fa-solid fa-gauge-high text-primary"></i>
+                      <LayoutDashboard size={14} className="text-primary" strokeWidth={2} />
                       <span>Dashboard</span>
+                    </Link>
+                    {/* ✅ Deep links directly into dashboard's edit profile tab */}
+                    <Link to="/userdashboard?tab=profile" className="user-hover-item">
+                      <UserPen size={14} className="text-secondary" strokeWidth={2} />
+                      <span>Edit Profile</span>
                     </Link>
                     <div className="user-hover-divider"></div>
                     <button 
@@ -375,7 +375,7 @@ const Header = ({
                       className="user-hover-item logout-option" 
                       onClick={handleLogoutClick}
                     >
-                      <i className="fa-solid fa-arrow-right-from-bracket text-danger"></i>
+                      <LogOut size={14} className="text-danger" strokeWidth={2} />
                       <span>Logout</span>
                     </button>
                   </div>
@@ -406,7 +406,7 @@ const Header = ({
             <li><Link className='header-links' to="/about">About Us</Link></li>
             <li><Link className='header-links' to="/categories">Categories</Link></li>
             <li>
-              <Link className='header-links custom-tooltip-link' to="/ordersummary" data-tooltip="How It Works">
+              <Link className='header-links custom-tooltip-link' to="/howitworks" data-tooltip="How It Works">
                 <i className="fa-solid fa-gear gear-one"></i>
                 <i className="fa-solid fa-gear gear-two"></i>
               </Link>
@@ -439,7 +439,7 @@ const Header = ({
               </Link>
             </li>
 
-            {/* My Orders Link (Visible only for authenticated standard users) */}
+            {/* My Orders Link */}
             {userIsLoggedIn && (
               <li>
                 <Link className='header-links' to="/myorders">

@@ -1,42 +1,36 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
+import axios from 'axios'
 import Header from '../Component/Header'
 import Footer from '../Component/Footer'
+import { LayoutDashboard, UserPen, Save, CheckCircle2 } from 'lucide-react'
 
 const Userdashboard = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // ── Tab Management ('overview' | 'editProfile') ──
+  const [activeTab, setActiveTab] = useState('overview')
 
   // ── Pull the logged-in user + their local activity (cart/wishlist) ──
   const [userInfo, setUserInfo] = useState(null)
   const [cartCount, setCartCount] = useState(0)
   const [wishlistCount, setWishlistCount] = useState(0)
 
-  useEffect(() => {
-    const stored = localStorage.getItem('user')
-    if (stored) {
-      try {
-        setUserInfo(JSON.parse(stored))
-      } catch (err) {
-        console.error('Error parsing stored user:', err)
-      }
-    }
-
-    const cart = JSON.parse(localStorage.getItem('cart')) || []
-    setCartCount(cart.length)
-
-    const wishlist = JSON.parse(localStorage.getItem('wishlist')) || []
-    setWishlistCount(wishlist.length)
-  }, [])
-
-  // Logout handler clears stored user session and redirects to Login
-  const handleLogout = () => {
-    if (window.confirm('Are you sure you want to log out?')) {
-      localStorage.removeItem('user')
-      localStorage.removeItem('isLoggedIn')
-      localStorage.removeItem('token')
-      navigate('/login')
-    }
-  }
+  // ── Edit Profile Form State ──
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    houseNo: '',
+    street: '',
+    landmark: '',
+    city: '',
+    state: '',
+    pincode: ''
+  })
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState('')
 
   // Helper to extract full name from combined or split name keys
   const getFullName = (data) => {
@@ -55,9 +49,109 @@ const Userdashboard = () => {
     return 'User'
   }
 
+  useEffect(() => {
+    // Check if routed directly with ?tab=profile
+    const searchParams = new URLSearchParams(location.search)
+    const requestedTab = searchParams.get('tab')
+    if (requestedTab === 'profile' || requestedTab === 'editprofile') {
+      setActiveTab('editProfile')
+    }
+
+    const stored = localStorage.getItem('user')
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        setUserInfo(parsed)
+
+        const rawUser = parsed.user || parsed
+        setEditFormData({
+          name: getFullName(parsed),
+          email: rawUser.email || '',
+          phone: rawUser.phone || rawUser.mobile || '',
+          houseNo: rawUser.houseNo || '',
+          street: rawUser.street || '',
+          landmark: rawUser.landmark || '',
+          city: rawUser.city || '',
+          state: rawUser.state || '',
+          pincode: rawUser.pincode || ''
+        })
+      } catch (err) {
+        console.error('Error parsing stored user:', err)
+      }
+    }
+
+    const cart = JSON.parse(localStorage.getItem('cart')) || []
+    setCartCount(cart.length)
+
+    const wishlist = JSON.parse(localStorage.getItem('wishlist')) || []
+    setWishlistCount(wishlist.length)
+  }, [location.search])
+
+  // Handle Edit Input Changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setEditFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  // Submit Profile Changes
+  const handleProfileUpdate = async (e) => {
+    e.preventDefault()
+    setSavingProfile(true)
+    setSaveSuccessMsg('')
+
+    const currentUserId = userInfo?.user?.id ?? userInfo?.id
+
+    try {
+      // Optional: Call Spring Boot Backend User update endpoint if present
+      if (currentUserId) {
+        try {
+          await axios.put(`http://localhost:8080/api/user/update/${currentUserId}`, editFormData)
+        } catch (apiErr) {
+          console.warn('Backend user endpoint skipped or not yet configured:', apiErr.message)
+        }
+      }
+
+      // Merge and update local storage user
+      const updatedUser = {
+        ...(userInfo || {}),
+        ...editFormData,
+        fullName: editFormData.name,
+        name: editFormData.name
+      }
+
+      if (userInfo?.user) {
+        updatedUser.user = {
+          ...userInfo.user,
+          ...editFormData,
+          fullName: editFormData.name,
+          name: editFormData.name
+        }
+      }
+
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+      setUserInfo(updatedUser)
+      setSaveSuccessMsg('Profile details updated successfully!')
+      setTimeout(() => setSaveSuccessMsg(''), 4000)
+    } catch (err) {
+      console.error('Error saving profile:', err)
+      alert('Could not update profile. Please try again.')
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
+  // Logout handler
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to log out?')) {
+      localStorage.removeItem('user')
+      localStorage.removeItem('isLoggedIn')
+      localStorage.removeItem('token')
+      navigate('/login')
+    }
+  }
+
   const displayName = getFullName(userInfo)
-  const displayEmail =
-    userInfo?.user?.email || userInfo?.email || 'Not available'
+  const displayEmail = userInfo?.user?.email || userInfo?.email || 'Not available'
   const displayId = userInfo?.user?.id ?? userInfo?.id ?? 'Not available'
   const displayRole = userInfo?.user?.role || userInfo?.role || 'ROLE_USER'
 
@@ -68,7 +162,7 @@ const Userdashboard = () => {
         .contact-hero-wrapper {
           position: relative;
           width: 100%;
-          height: 55vh;
+          height: 50vh;
           overflow: hidden;
           background-color: #0f172a;
         }
@@ -108,7 +202,7 @@ const Userdashboard = () => {
 
         .contact-hero-content h1 {
           font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-          font-size: 3rem;
+          font-size: 2.8rem;
           font-weight: 200;
           line-height: 1.2;
           text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
@@ -116,21 +210,50 @@ const Userdashboard = () => {
 
         .contact-hero-content p {
           font-family: monospace;
-          font-size: 1.2rem;
-          margin-top: 15px;
+          font-size: 1.1rem;
+          margin-top: 10px;
           color: #e2e8f0;
           text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
-        }
-
-        .contact-info-section {
-          background-color: #0f172a;
-          padding: 80px 0;
         }
 
         /* ── Dashboard content ── */
         .dash-section {
           background-color: #f8f9fa;
-          padding: 60px 0 80px 0;
+          padding: 50px 0 80px 0;
+        }
+
+        /* ── Navigation Tabs ── */
+        .dash-tab-container {
+          display: flex;
+          gap: 12px;
+          margin-bottom: 25px;
+          border-bottom: 2px solid #e2e8f0;
+          padding-bottom: 8px;
+        }
+
+        .dash-tab-btn {
+          border: none;
+          background: transparent;
+          padding: 10px 20px;
+          font-weight: 600;
+          font-size: 0.95rem;
+          color: #64748b;
+          border-radius: 8px;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .dash-tab-btn:hover {
+          color: #0d6efd;
+          background-color: #f1f5f9;
+        }
+
+        .dash-tab-btn.active {
+          color: #0d6efd;
+          background-color: #e0edff;
         }
 
         .dash-profile-card {
@@ -219,7 +342,6 @@ const Userdashboard = () => {
           margin-top: 4px;
         }
 
-        /* ── Outline Danger Logout Button ── */
         .dash-logout-btn {
           background-color: transparent;
           color: #dc3545;
@@ -241,89 +363,295 @@ const Userdashboard = () => {
           box-shadow: 0 4px 12px rgba(220, 53, 69, 0.25);
           transform: translateY(-1px);
         }
-
-        .dash-logout-btn:active {
-          transform: translateY(0);
-          background-color: #bb2d3b;
-          border-color: #bb2d3b;
-        }
         `}
       </style>
 
       {/* Top White Bar + Navbar with Logout Capsule */}
       <Header hideHero={true} isLoggedIn={true} onLogout={handleLogout} />
 
-      {/* Hero Header Section with Background Image */}
+      {/* Hero Header Section */}
       <div className="contact-hero-wrapper">
         <img
-          src="https://images.unsplash.com/photo-1640969178204-261969c1305c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          src="https://images.unsplash.com/photo-1640969178204-261969c1305c?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0"
           alt="Dashboard Background"
           className="contact-hero-image"
         />
         <div className="contact-hero-overlay"></div>
         <div className="contact-hero-content">
           <h1>Welcome, {displayName}</h1>
-          <p>Here is a quick snapshot of your account and rental activity.</p>
+          <p>
+            {activeTab === 'overview'
+              ? 'Here is a quick snapshot of your account and rental activity.'
+              : 'Manage your personal information and default shipping details.'}
+          </p>
         </div>
       </div>
 
       {/* ── Dashboard Body ── */}
       <div className="dash-section">
         <div className="container">
-          {/* Account Info Card */}
-          <div className="dash-profile-card flex-wrap">
-            <div className="dash-avatar">
-              {displayName.charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-grow-1">
-              <h4 className="fw-bold mb-1">{displayName}</h4>
-              <span className="badge bg-primary-subtle text-primary fw-semibold">
-                {String(displayRole).replace('ROLE_', '')}
-              </span>
-
-              <div className="dash-info-row">
-                <div>
-                  <div className="dash-info-label">User ID</div>
-                  <div className="dash-info-value">{displayId}</div>
-                </div>
-                <div>
-                  <div className="dash-info-label">Email</div>
-                  <div className="dash-info-value">{displayEmail}</div>
-                </div>
-              </div>
-            </div>
-            <button className="dash-logout-btn" onClick={handleLogout}>
-              Logout
+          {/* Interactive Navigation Tabs */}
+          <div className="dash-tab-container">
+            <button
+              className={`dash-tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              <LayoutDashboard size={18} />
+              <span>Overview</span>
+            </button>
+            <button
+              className={`dash-tab-btn ${activeTab === 'editProfile' ? 'active' : ''}`}
+              onClick={() => setActiveTab('editProfile')}
+            >
+              <UserPen size={18} />
+              <span>Edit Profile</span>
             </button>
           </div>
 
-          {/* Activity Summary */}
-          <h5 className="fw-bold mb-3">Your Activity</h5>
-          <div className="dash-activity-grid">
-            <Link to="/cart" className="dash-activity-card">
-              <div className="dash-activity-icon">
-                <i className="fa-solid fa-cart-shopping"></i>
-              </div>
-              <div className="dash-activity-count">{cartCount}</div>
-              <div className="dash-activity-label">Items in Cart</div>
-            </Link>
+          {/* TAB 1: OVERVIEW */}
+          {activeTab === 'overview' && (
+            <>
+              {/* Account Info Card */}
+              <div className="dash-profile-card flex-wrap">
+                <div className="dash-avatar">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-grow-1">
+                  <h4 className="fw-bold mb-1">{displayName}</h4>
+                  <span className="badge bg-primary-subtle text-primary fw-semibold">
+                    {String(displayRole).replace('ROLE_', '')}
+                  </span>
 
-            <Link to="/wishlist" className="dash-activity-card">
-              <div className="dash-activity-icon">
-                <i className="fa-solid fa-heart"></i>
+                  <div className="dash-info-row">
+                    <div>
+                      <div className="dash-info-label">User ID</div>
+                      <div className="dash-info-value">{displayId}</div>
+                    </div>
+                    <div>
+                      <div className="dash-info-label">Email</div>
+                      <div className="dash-info-value">{displayEmail}</div>
+                    </div>
+                    <div>
+                      <div className="dash-info-label">Contact</div>
+                      <div className="dash-info-value">{editFormData.phone || 'Not Provided'}</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex gap-2">
+                  <button
+                    className="btn btn-outline-primary rounded-pill px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1"
+                    onClick={() => setActiveTab('editProfile')}
+                  >
+                    <UserPen size={16} /> Edit Info
+                  </button>
+                  <button className="dash-logout-btn" onClick={handleLogout}>
+                    Logout
+                  </button>
+                </div>
               </div>
-              <div className="dash-activity-count">{wishlistCount}</div>
-              <div className="dash-activity-label">Wishlist Items</div>
-            </Link>
 
-            <Link to="/" className="dash-activity-card">
-              <div className="dash-activity-icon">
-                <i className="fa-solid fa-house"></i>
+              {/* Activity Summary */}
+              <h5 className="fw-bold mb-3">Your Activity</h5>
+              <div className="dash-activity-grid">
+                <Link to="/cart" className="dash-activity-card">
+                  <div className="dash-activity-icon">
+                    <i className="fa-solid fa-cart-shopping"></i>
+                  </div>
+                  <div className="dash-activity-count">{cartCount}</div>
+                  <div className="dash-activity-label">Items in Cart</div>
+                </Link>
+
+                <Link to="/wishlist" className="dash-activity-card">
+                  <div className="dash-activity-icon">
+                    <i className="fa-solid fa-heart"></i>
+                  </div>
+                  <div className="dash-activity-count">{wishlistCount}</div>
+                  <div className="dash-activity-label">Wishlist Items</div>
+                </Link>
+
+                <Link to="/myorders" className="dash-activity-card">
+                  <div className="dash-activity-icon">
+                    <i className="fa-solid fa-box"></i>
+                  </div>
+                  <div className="dash-activity-count">—</div>
+                  <div className="dash-activity-label">My Orders</div>
+                </Link>
+
+                <Link to="/" className="dash-activity-card">
+                  <div className="dash-activity-icon">
+                    <i className="fa-solid fa-house"></i>
+                  </div>
+                  <div className="dash-activity-count">—</div>
+                  <div className="dash-activity-label">Browse Categories</div>
+                </Link>
               </div>
-              <div className="dash-activity-count">—</div>
-              <div className="dash-activity-label">Browse Categories</div>
-            </Link>
-          </div>
+            </>
+          )}
+
+          {/* TAB 2: EDIT PROFILE */}
+          {activeTab === 'editProfile' && (
+            <div className="card border-0 shadow-sm p-4 p-md-5 rounded-4 bg-white">
+              <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                <div>
+                  <h4 className="fw-bold mb-1">Edit Profile Details</h4>
+                  <p className="text-muted small mb-0">
+                    Update your account details and default delivery address for faster checkout.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary btn-sm rounded-pill px-3"
+                  onClick={() => setActiveTab('overview')}
+                >
+                  Cancel
+                </button>
+              </div>
+
+              {saveSuccessMsg && (
+                <div className="alert alert-success d-flex align-items-center gap-2 rounded-3 mb-4" role="alert">
+                  <CheckCircle2 size={18} />
+                  <div>{saveSuccessMsg}</div>
+                </div>
+              )}
+
+              <form onSubmit={handleProfileUpdate}>
+                {/* 1. Basic Account Information */}
+                <h6 className="fw-bold text-primary mb-3">1. Personal Information</h6>
+                <div className="row g-3 mb-4">
+                  <div className="col-md-6">
+                    <label className="form-label small fw-semibold text-secondary">Full Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      className="form-control"
+                      value={editFormData.name}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label small fw-semibold text-secondary">Email Address</label>
+                    <input
+                      type="email"
+                      name="email"
+                      className="form-control"
+                      value={editFormData.email}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label small fw-semibold text-secondary">Contact Phone</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      className="form-control"
+                      placeholder="e.g. +91 9876543210"
+                      value={editFormData.phone}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+
+                {/* 2. Default Shipping Address */}
+                <h6 className="fw-bold text-primary mb-3">2. Default Delivery Address</h6>
+                <div className="row g-3 mb-4">
+                  <div className="col-md-6">
+                    <label className="form-label small fw-semibold text-secondary">Flat / House No. / Building</label>
+                    <input
+                      type="text"
+                      name="houseNo"
+                      className="form-control"
+                      placeholder="e.g. Flat 402, Building A"
+                      value={editFormData.houseNo}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label small fw-semibold text-secondary">Landmark (Optional)</label>
+                    <input
+                      type="text"
+                      name="landmark"
+                      className="form-control"
+                      placeholder="e.g. Near City Hospital"
+                      value={editFormData.landmark}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label small fw-semibold text-secondary">Street Address / Area</label>
+                    <input
+                      type="text"
+                      name="street"
+                      className="form-control"
+                      placeholder="e.g. SV Road, Silver Oaks Layout"
+                      value={editFormData.street}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label small fw-semibold text-secondary">City</label>
+                    <input
+                      type="text"
+                      name="city"
+                      className="form-control"
+                      placeholder="e.g. Mumbai"
+                      value={editFormData.city}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label small fw-semibold text-secondary">State</label>
+                    <input
+                      type="text"
+                      name="state"
+                      className="form-control"
+                      placeholder="e.g. Maharashtra"
+                      value={editFormData.state}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="form-label small fw-semibold text-secondary">Pincode</label>
+                    <input
+                      type="text"
+                      name="pincode"
+                      className="form-control"
+                      placeholder="e.g. 400053"
+                      value={editFormData.pincode}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="d-flex justify-content-end gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary rounded-pill px-4"
+                    onClick={() => setActiveTab('overview')}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn btn-primary rounded-pill px-4 fw-semibold d-inline-flex align-items-center gap-2"
+                    disabled={savingProfile}
+                  >
+                    {savingProfile ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm" role="status"></span>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save size={16} /> Save Changes
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
         </div>
       </div>
       <hr className="m-0" />
