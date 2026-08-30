@@ -89,7 +89,7 @@ const About = () => {
       <div>
         <Header
           videoSrc={aboutVideo}
-          heroTitle="About justborrowit"
+          heroTitle="About Borrow"
           heroSubtitle="Building a Smarter Sharing Community."
           heroBtnText="See How It Works"
           heroBtnLink="/howitworks"

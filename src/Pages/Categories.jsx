@@ -201,7 +201,7 @@ const Categories = () => {
   return (
     <>
       <style>{`
-        .categories-hero-wrapper { position: relative; width: 100%; height: 70vh; overflow: hidden; }
+        .categories-hero-wrapper { position: relative; width: 100%; height: 90vh; overflow: hidden; }
         .categories-hero-image { width: 100%; height: 100%; object-fit: cover; filter: grayscale(20%); }
         .categories-hero-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.35); }
         .category-select-section { background-color: #f8fafc; padding: 70px 0; }

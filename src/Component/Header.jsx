@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { ShoppingCart } from 'lucide-react'
 import '../CSS/Header.css'
 import logovideo from '../Images/Scene.mp4'
@@ -19,11 +19,44 @@ const Header = ({
   cartCount = 0
 }) => {
   const [isScrolled, setIsScrolled] = useState(window.scrollY > 90);
+  const [userIsLoggedIn, setUserIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Check if user session exists in localStorage
-  const user = JSON.parse(localStorage.getItem("user"));
-  const userIsLoggedIn = isLoggedIn || !!user;
+  useEffect(() => {
+    // 1. If currently on login or register pages, force logout UI state
+    if (location.pathname === '/login' || location.pathname === '/register') {
+      setUserIsLoggedIn(false);
+      return;
+    }
+
+    try {
+      const rawUser = localStorage.getItem("user");
+      const userRole = localStorage.getItem("role");
+      const isAdminLoggedIn = localStorage.getItem("admin") || localStorage.getItem("adminToken");
+
+      let parsedUser = null;
+      if (rawUser && rawUser !== "undefined" && rawUser !== "null") {
+        parsedUser = JSON.parse(rawUser);
+      }
+
+      // Check if current user is an Admin
+      const isRoleAdmin = 
+        userRole === "admin" || 
+        parsedUser?.role === "admin" || 
+        parsedUser?.isAdmin === true ||
+        Boolean(isAdminLoggedIn);
+
+      // Only regular customer users should show the logged-in state
+      if (!isRoleAdmin && (parsedUser || isLoggedIn)) {
+        setUserIsLoggedIn(true);
+      } else {
+        setUserIsLoggedIn(false);
+      }
+    } catch {
+      setUserIsLoggedIn(false);
+    }
+  }, [location.pathname, isLoggedIn]);
 
   // Handle Logout action
   const handleLogoutClick = () => {
@@ -31,11 +64,8 @@ const Header = ({
       onLogout();
     } else {
       if (window.confirm("Are you sure you want to log out?")) {
-        localStorage.removeItem("user");
-        localStorage.removeItem("wishlist");
-        localStorage.removeItem("cart");
-        localStorage.removeItem("token");
-        localStorage.removeItem("isLoggedIn");
+        localStorage.clear();
+        setUserIsLoggedIn(false);
         navigate("/login");
       }
     }
@@ -321,7 +351,7 @@ const Header = ({
               </a>
             </li>
 
-            {/* Compact Login/Logout Section */}
+            {/* Login / Logout Section */}
             <li className="d-flex align-items-center">
               {userIsLoggedIn ? (
                 <div className="user-auth-wrapper">
@@ -334,7 +364,6 @@ const Header = ({
                     <i className="fa-solid fa-chevron-down" style={{ fontSize: '0.65rem' }}></i>
                   </button>
 
-                  {/* Clean Dropdown with identical button width */}
                   <div className="user-hover-menu">
                     <Link to="/userdashboard" className="user-hover-item">
                       <i className="fa-solid fa-gauge-high text-primary"></i>
@@ -410,12 +439,15 @@ const Header = ({
               </Link>
             </li>
 
-             <li>
-              <Link className='header-links' to="/myorders">
-                <span>Myorders </span>
-                <i className="fa-solid fa-heart" style={{ color: '#e11d48' }}></i>
-              </Link>
-            </li>
+            {/* My Orders Link (Visible only for authenticated standard users) */}
+            {userIsLoggedIn && (
+              <li>
+                <Link className='header-links' to="/myorders">
+                  <span>My Orders </span>
+                  <i className="fa-solid fa-box"></i>
+                </Link>
+              </li>
+            )}
           </ul>
         </nav>
 
