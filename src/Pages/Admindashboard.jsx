@@ -1,11 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import borrowImg from '../Images/HeaderFooterMainLogo.png'
+import borrowImg from '../Images/HeaderFooterMainLogo.png';
 import '../CSS/Admin.css';
 import axios from 'axios';
-
- 
 
 const CATEGORIES_LIST = [
   { id: 'digital', name: 'Digital', icon: 'fa-laptop' },
@@ -32,12 +30,12 @@ const AdminDashboard = () => {
     setSearchParams({ tab: tabName });
   };
 
-  // Select category and push history state (so browser back/swiping works)
+  // Select category and push history state
   const handleSelectCategory = (categoryName) => {
     setSearchParams({ tab: 'view-products', category: categoryName });
   };
 
-  // Back action: uses browser history
+  // Back action
   const handleBackToCategories = () => {
     navigate(-1);
   };
@@ -79,7 +77,6 @@ const AdminDashboard = () => {
     axios.get("http://localhost:8080/products/viewall")
       .then((response) => {
         setProducts(response.data);
-        console.log("Fetched Products: ", response.data);
       })
       .catch((error) => {
         console.error("Error fetching products: ", error);
@@ -91,17 +88,28 @@ const AdminDashboard = () => {
     axios.get("http://localhost:8080/users/viewall")
       .then((response) => {
         setUsers(response.data);
-        console.log("Fetched Users: ", response.data);
       })
       .catch((error) => {
         console.error("Error fetching users: ", error);
       });
   }, []);
 
+  // Fetch all orders from backend API
+  const fetchOrders = useCallback(() => {
+    axios.get("http://localhost:8080/api/orders/viewall")
+      .then((response) => {
+        setOrders(Array.isArray(response.data) ? response.data.reverse() : []);
+      })
+      .catch((error) => {
+        console.error("Error fetching orders: ", error);
+      });
+  }, []);
+
   useEffect(() => {
     fetchProducts();
     fetchUsers();
-  }, [fetchProducts, fetchUsers]);
+    fetchOrders();
+  }, [fetchProducts, fetchUsers, fetchOrders]);
 
   // Handle Input Changes for Add Product Form
   const handleInputChange = (e) => {
@@ -200,7 +208,6 @@ const AdminDashboard = () => {
           params: { active: newStatus }
         }
       );
-      console.log(`User ${user.id} status updated to:`, newStatus);
     } catch (error) {
       console.error("Error updating user status in database:", error);
       alert("Failed to update status in database. Reverting changes.");
@@ -210,6 +217,29 @@ const AdminDashboard = () => {
           u.id === user.id ? { ...u, active: !newStatus } : u
         )
       );
+    }
+  };
+
+  // Update Order Status (Admin action)
+  const handleOrderStatusChange = async (orderId, newStatus) => {
+    try {
+      await axios.patch(
+        `http://localhost:8080/api/orders/updatestatus/${orderId}`,
+        null,
+        {
+          params: { status: newStatus }
+        }
+      );
+
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === orderId ? { ...order, orderStatus: newStatus } : order
+        )
+      );
+      alert(`Order #${orderId} status updated to ${newStatus}`);
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      alert("Failed to update order status.");
     }
   };
 
@@ -752,23 +782,65 @@ const AdminDashboard = () => {
                         <th>Product</th>
                         <th>Quantity</th>
                         <th>Total Amount</th>
-                        <th>Order Date</th>
+                        <th>Payment ID</th>
                         <th>Status</th>
+                        <th>Update Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {orders.map((order) => (
                         <tr key={order.id}>
                           <td>#{order.id}</td>
-                          <td className="fw-medium">{order.userName}</td>
-                          <td>{order.productName}</td>
-                          <td>{order.quantity}</td>
-                          <td className="fw-bold text-success">₹{order.totalPrice}</td>
-                          <td>{order.orderDate}</td>
                           <td>
-                            <span className="badge bg-warning text-dark">
-                              {order.active || 'PENDING'}
+                            <div className="fw-semibold small">{order.user?.fullName || order.user?.name || 'Customer'}</div>
+                            <div className="text-muted extra-small">{order.user?.email || 'N/A'}</div>
+                          </td>
+                          <td>
+                            <div className="d-flex align-items-center gap-2">
+                              {order.productImage && (
+                                <img
+                                  src={order.productImage}
+                                  alt={order.productName}
+                                  style={{ width: '36px', height: '36px', objectFit: 'cover', borderRadius: '6px' }}
+                                  onError={(e) => { e.target.style.display = 'none'; }}
+                                />
+                              )}
+                              <span className="fw-medium">{order.productName}</span>
+                            </div>
+                          </td>
+                          <td>{order.quantity}</td>
+                          <td className="fw-bold text-success">₹{order.totalAmount}</td>
+                          <td>
+                            <code className="text-dark small">{order.paymentId || 'N/A'}</code>
+                          </td>
+                          <td>
+                            <span className={`badge ${
+                              order.orderStatus === 'DELIVERED'
+                                ? 'bg-success'
+                                : order.orderStatus === 'CANCELLED'
+                                ? 'bg-danger'
+                                : order.orderStatus === 'SHIPPED'
+                                ? 'bg-info text-dark'
+                                : order.orderStatus === 'CONFIRMED'
+                                ? 'bg-primary'
+                                : 'bg-warning text-dark'
+                            }`}>
+                              {order.orderStatus || 'PLACED'}
                             </span>
+                          </td>
+                          <td>
+                            <select
+                              className="form-select form-select-sm"
+                              style={{ width: '135px' }}
+                              value={order.orderStatus || 'PLACED'}
+                              onChange={(e) => handleOrderStatusChange(order.id, e.target.value)}
+                            >
+                              <option value="PLACED">PLACED</option>
+                              <option value="CONFIRMED">CONFIRMED</option>
+                              <option value="SHIPPED">SHIPPED</option>
+                              <option value="DELIVERED">DELIVERED</option>
+                              <option value="CANCELLED">CANCELLED</option>
+                            </select>
                           </td>
                         </tr>
                       ))}
@@ -814,7 +886,6 @@ const AdminDashboard = () => {
                   ></textarea>
                 </div>
 
-                {/* CATEGORY SELECT DROPDOWN */}
                 <div className="mb-3">
                   <label className="form-label fw-medium">Category</label>
                   <select
@@ -913,7 +984,6 @@ const AdminDashboard = () => {
       {/* SIDEBAR NAVIGATION */}
       <aside className="medishop-sidebar">
         <div className="sidebar-brand-box d-flex align-items-center justify-content-between">
-          {/* Logo Image */}
           <img 
             src={borrowImg} 
             alt="Borrow Logo" 

@@ -109,8 +109,8 @@ const OrderSummary = () => {
     if (location.state?.cartItems && location.state.cartItems.length > 0) {
       setItems(location.state.cartItems)
       setLoading(false)
-    } else if (parsedUser?.id) {
-      fetchCartFromDB(parsedUser.id)
+    } else if (parsedUser?.id || parsedUser?.user?.id) {
+      fetchCartFromDB(parsedUser?.id || parsedUser?.user?.id)
     } else {
       const localCart = JSON.parse(localStorage.getItem('cart')) || []
       setItems(localCart.map(normalizeCartItem))
@@ -181,7 +181,7 @@ const OrderSummary = () => {
     try {
       const payAmount = Math.round(totalAmount)
 
-      // 2. Call Spring Boot Backend: /api/payment/create-order/{amount}
+      // 2. Call Spring Boot Backend to create transaction order
       const response = await axios.get(`http://localhost:8080/api/payment/create-order/${payAmount}`)
       const orderData = response.data
 
@@ -203,12 +203,34 @@ const OrderSummary = () => {
         image: 'https://cdn-icons-png.flaticon.com/512/1006/1006771.png',
         order_id: orderId,
         handler: async function (paymentResponse) {
-          alert(
-            `Payment Successful!\nPayment ID: ${paymentResponse.razorpay_payment_id}\nOrder ID: ${paymentResponse.razorpay_order_id}`
-          )
+          try {
+            const currentUserId = user?.id || user?.user?.id
 
-          localStorage.removeItem('cart')
-          navigate('/')
+            if (!currentUserId) {
+              alert('User ID is missing. Please log in again.')
+              navigate('/login')
+              return
+            }
+
+            // 4. Save order to MyOrders and clear MySQL cart table
+            const saveRes = await axios.post(
+              `http://localhost:8080/api/orders/place-order/${currentUserId}/${paymentResponse.razorpay_payment_id}`
+            )
+
+            if (saveRes.status === 200 || saveRes.status === 201) {
+              // 5. Clear LocalStorage and state
+              localStorage.removeItem('cart')
+              window.dispatchEvent(new Event('storage'))
+
+              alert(`Payment Successful! Your order has been placed.\nPayment ID: ${paymentResponse.razorpay_payment_id}`)
+
+              // 6. Navigate directly to My Orders page
+              navigate('/myorders')
+            }
+          } catch (orderSaveErr) {
+            console.error('Error saving order details to database:', orderSaveErr)
+            alert('Payment succeeded, but failed to save order records. Please contact customer support.')
+          }
         },
         prefill: {
           name: deliveryInfo.fullName,
@@ -223,7 +245,7 @@ const OrderSummary = () => {
         }
       }
 
-      // 4. Open Razorpay modal
+      // 7. Open Razorpay modal
       const razorpayInstance = new window.Razorpay(options)
 
       razorpayInstance.on('payment.failed', function (failureResponse) {
@@ -248,7 +270,7 @@ const OrderSummary = () => {
     <>
       <Header hideHero={true} />
 
-      {/* Hero Section matching Cart page */}
+      {/* Hero Section */}
       <div
         className="summary-hero-wrapper"
         style={{
@@ -318,7 +340,7 @@ const OrderSummary = () => {
             </div>
           ) : (
             <div className="row g-4">
-              {/* Left Column: Items and Full Address Form */}
+              {/* Left Column: Items and Delivery Form */}
               <div className="col-lg-8">
                 {/* Items Card */}
                 <div className="card border-0 shadow-sm p-4 rounded-4 mb-4">
